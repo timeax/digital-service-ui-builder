@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="MySpace" pattern="file[digital-service-ui-builder]:src//*" />
+</component>
