@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "digital-service-ui-builder/react": [
+        "../src/react/index.ts"
+      ],
+      "digital-service-ui-builder/react/*": [
+        "../src/react/*"
+      ],
+      "digital-service-ui-builder/core": [
+        "../src/core/index.ts"
+      ],
+      "digital-service-ui-builder/core/*": [
+        "../src/core/*"
+      ],
+      "digital-service-ui-builder/schema": [
+        "../src/schema/index.ts"
+      ],
+      "digital-service-ui-builder/schema/*": [
+        "../src/schema/*"
+      ],
+      "digital-service-ui-builder": [
+        "../src/schema/index.ts"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "src"
+  ]
+}

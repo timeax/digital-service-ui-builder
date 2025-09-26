@@ -1,0 +1,401 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/EditorSnapshot",
+  "definitions": {
+    "EditorSnapshot": {
+      "type": "object",
+      "properties": {
+        "props": {
+          "$ref": "#/definitions/ServiceProps"
+        },
+        "layout": {
+          "$ref": "#/definitions/LayoutState"
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CommentNode"
+          }
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "props"
+      ]
+    },
+    "ServiceProps": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Tag"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Field"
+          }
+        },
+        "includes_for_options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "excludes_for_options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filters",
+        "fields"
+      ]
+    },
+    "Tag": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "bind_id": {
+          "type": "string"
+        },
+        "service_id": {
+          "type": "number"
+        },
+        "constraints": {
+          "type": "object",
+          "properties": {
+            "refill": {
+              "type": "boolean"
+            },
+            "cancel": {
+              "type": "boolean"
+            },
+            "dripfeed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "includes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ]
+    },
+    "Field": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/FieldType"
+        },
+        "bind_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FieldOption"
+          }
+        },
+        "component": {
+          "type": "string"
+        },
+        "pricing_role": {
+          "$ref": "#/definitions/PricingRole"
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "helperText": {
+          "type": "string"
+        },
+        "helperTextPos": {
+          "type": "string"
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "labelClassName": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "axis": {
+          "type": "string",
+          "enum": [
+            "y",
+            "x"
+          ]
+        },
+        "labelAxis": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y"
+          ]
+        },
+        "extra": {}
+      },
+      "required": [
+        "id",
+        "label",
+        "type"
+      ]
+    },
+    "FieldType": {
+      "type": "string"
+    },
+    "FieldOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "service_id": {
+          "type": "number"
+        },
+        "pricing_role": {
+          "$ref": "#/definitions/PricingRole"
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ]
+    },
+    "PricingRole": {
+      "type": "string",
+      "enum": [
+        "base",
+        "utility"
+      ]
+    },
+    "LayoutState": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NodePosition"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EdgeRoute"
+          }
+        }
+      },
+      "required": [
+        "nodes"
+      ]
+    },
+    "NodePosition": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "x",
+        "y"
+      ]
+    },
+    "EdgeRoute": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ]
+          }
+        }
+      },
+      "required": [
+        "id",
+        "points"
+      ]
+    },
+    "CommentNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "resolved"
+          ]
+        },
+        "anchor": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "tag",
+                "field",
+                "option"
+              ]
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "id"
+          ]
+        },
+        "replies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "created_at": {
+                "type": "string"
+              },
+              "author": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "text",
+              "created_at"
+            ]
+          }
+        },
+        "xy": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "status"
+      ]
+    }
+  }
+}

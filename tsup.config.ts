@@ -10,7 +10,8 @@ export default defineConfig([
             'schema/editor': 'src/schema/editor.ts',
             'schema/provider': 'src/schema/provider.ts',
             'schema/validation': 'src/schema/validation.ts',
-            'schema/graph': 'src/schema/graph.ts'
+            'schema/graph': 'src/schema/graph.ts',
+            'schema/policies': 'src/schema/policies.ts'
         },
         dts: true,
         format: ['esm', 'cjs'],

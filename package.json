@@ -28,18 +28,23 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.mjs",
       "require": "./dist/react/index.cjs"
-    }
+    },
+    "./json/service-props": "./schema/service-props.schema.json",
+    "./json/editor-snapshot": "./schema/editor-snapshot.schema.json",
+    "./json/policies": "./schema/policies.schema.json"
   },
   "types": "./dist/schema/index.d.ts",
   "files": [
-    "dist/"
+    "dist/",
+    "schema/"
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "npm run clean && tsup",
+    "build": "npm run clean && tsup && node scripts/generate-schemas.mjs",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:schema": "node scripts/generate-schemas.mjs"
   },
   "repository": {
     "type": "git",
@@ -52,16 +57,22 @@
   },
   "sideEffects": false,
   "peerDependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "^19.0.0",
+    "react-day-picker": "^9.8.1",
+    "react-dom": "^19.0.0",
     "reactflow": "^11.11.4"
   },
   "devDependencies": {
+    "@types/lodash-es": "^4.17.12",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "rimraf": "^5.0.10",
+    "ts-json-schema-generator": "^2.4.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
     "vitest": "^1.6.1"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.21"
   }
 }

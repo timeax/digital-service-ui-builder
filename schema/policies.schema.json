@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/AdminPolicies",
+  "definitions": {
+    "AdminPolicies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DynamicRule"
+      },
+      "description": "Exported alias so the schema generator can target an array"
+    },
+    "DynamicRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "global",
+            "visible_group"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "const": "services"
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": [
+                "base",
+                "utility",
+                "both"
+              ]
+            },
+            "handler_id": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              ]
+            },
+            "platform_id": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              ]
+            },
+            "tag_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            },
+            "field_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "projection": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "all_equal",
+            "unique",
+            "no_mix",
+            "all_true",
+            "any_true",
+            "max_count",
+            "min_count"
+          ]
+        },
+        "value": {
+          "type": [
+            "number",
+            "boolean"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "scope",
+        "subject",
+        "op"
+      ]
+    }
+  }
+}

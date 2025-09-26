@@ -69,7 +69,9 @@
       </option>
       <option name="migratedIntoUserSpace" value="true" />
     </inspection_tool>
+    <inspection_tool class="GrazieInspection" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="JSUnusedGlobalSymbols" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="PointlessBooleanExpressionJS" enabled="true" level="INFORMATION" enabled_by_default="true" />
     <inspection_tool class="SecurityAdvisoriesInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="optionConfiguration">
         <list>
@@ -124,6 +126,16 @@
           <option value="zendframework/zend-test" />
         </list>
       </option>
+    </inspection_tool>
+    <inspection_tool class="SpellCheckingInspection" enabled="true" level="INFORMATION" enabled_by_default="true">
+      <option name="processCode" value="true" />
+      <option name="processLiterals" value="true" />
+      <option name="processComments" value="true" />
+    </inspection_tool>
+    <inspection_tool class="SuspiciousTypeOfGuard" enabled="true" level="INFORMATION" enabled_by_default="true" />
+    <inspection_tool class="UnnecessaryLocalVariableJS" enabled="true" level="INFORMATION" enabled_by_default="true">
+      <option name="m_ignoreImmediatelyReturnedVariables" value="false" />
+      <option name="m_ignoreAnnotatedVariables" value="false" />
     </inspection_tool>
   </profile>
 </component>

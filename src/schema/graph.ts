@@ -1,25 +1,13 @@
-import type { UUID } from './index';
+export type NodeKind = 'tag' | 'field' | 'comment';
+export type EdgeKind = 'child' | 'bind' | 'include' | 'exclude' | 'error' | 'anchor';
 
-export interface GraphNode<Data = unknown> {
-  id: UUID;
-  type?: string;
-  label?: string;
-  position: { x: number; y: number };
-  data?: Data;
-}
+export type GraphNode = {
+    id: string;
+    kind: NodeKind;
+    bind_type?: 'bound' | 'utility' | null; // for fields: bound vs unbound helper
+    errors?: string[];                       // node-local error codes
+};
 
-export interface GraphEdge<Data = unknown> {
-  id: UUID;
-  source: UUID;
-  target: UUID;
-  label?: string;
-  data?: Data;
-}
+export type GraphEdge = { from: string; to: string; kind: EdgeKind };
 
-export interface GraphSnapshot<NodeData = unknown, EdgeData = unknown> {
-  id: UUID;
-  nodes: GraphNode<NodeData>[];
-  edges: GraphEdge<EdgeData>[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+export type GraphSnapshot = { nodes: GraphNode[]; edges: GraphEdge[] };

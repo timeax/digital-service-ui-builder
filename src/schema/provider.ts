@@ -1,34 +1,16 @@
-import type { UUID } from './index';
+/** Minimal capability shape sourced from DgpService */
+export type DgpServiceCapability = {
+    id: number;
+    key?: string;                     // provider key if relevant
+    rate?: number;                    // canonical numeric rate
+    min?: number;                     // min order qty
+    max?: number;                     // max order qty
+    dripfeed?: boolean;
+    refill?: boolean;
+    cancel?: boolean;
+    estimate?: { start?: number | null; speed?: number | null; average?: number | null };
+    meta?: Record<string, unknown>;
+    [x: string]: any;
+};
 
-export type CapabilityKey =
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'export'
-  | 'import'
-  | 'publish'
-  | 'comment'
-  | 'price';
-
-export interface Capability {
-  key: CapabilityKey;
-  label: string;
-  enabled: boolean;
-  description?: string;
-}
-
-export interface ServiceCapabilityGroup {
-  id: UUID;
-  label: string;
-  capabilities: Capability[];
-}
-
-export interface ServiceDefinition {
-  id: UUID;
-  name: string;
-  version: string;
-  capabilityGroups: ServiceCapabilityGroup[];
-}
-
-export type DgpServiceMap = Record<string, ServiceDefinition>;
+export type DgpServiceMap = Record<number, DgpServiceCapability>; // id -> capability
