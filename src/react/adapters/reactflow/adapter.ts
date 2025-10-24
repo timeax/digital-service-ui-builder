@@ -147,7 +147,7 @@ function toRF(
 const parseEdgeId = (
     id: string,
 ): { kind: EdgeKind; from: string; to: string } | null => {
-    const [k, rest] = id.split(":");
+    const [k, rest ] = id.split(":");
     if (!k || !rest) return null;
     const [from, to] = rest.split("->");
     if (!from || !to) return null;
