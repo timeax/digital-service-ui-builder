@@ -1,0 +1,38 @@
+{
+   "outFile": "./styles/app.css",
+   "colors": {
+      "source": "./utils/colors.scss",
+      "type": "tailwind"
+   },
+   "media": {
+      "breakpoints": {
+         "i3_2": "320px",
+         "i3_6": "360px",
+         "i3_75": "375px",
+         "i4_14": "414px",
+         "i4": "400px",
+         "i5_76": "576px",
+         "i7_68": "768px",
+         "i6": "600px",
+         "i6_2": "620px",
+         "i8": "800px",
+         "i9_92": "992px",
+         "i9_2": "920px",
+         "i10_24": "1024px",
+         "i10_8": "1080px",
+         "i12_8": "1280px",
+         "i13_66": "1366px",
+         "i15_36": "1536px",
+         "i19_2": "1920px"
+      },
+      "outDir": "./styles",
+      "type": "tailwind",
+      "useSass": false
+   },
+   "extra": {
+      "fonts": {
+         "primary": "Inter, sans-serif",
+         "secondary": "Roboto, sans-serif"
+      }
+   }
+}

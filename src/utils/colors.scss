@@ -1,0 +1,70 @@
+$colors: (
+    #background: (
+        default: #ffffff,
+        --dark-default: #0b1220,
+    ),
+    #foreground: (
+        default: #0f172a, // slate-900-ish
+        --dark-default: #e6e7ea, // light-on-dark body text
+    ),
+    #card: (
+        default: #ffffff,
+        foreground: #0f172a,
+        --dark-default: #0f172a,
+        --dark-foreground: #e6e7ea,
+    ),
+    #popover: (
+        default: #ffffff,
+        foreground: #0f172a,
+        --dark-default: #0f172a,
+        --dark-foreground: #e6e7ea,
+    ),
+    #primary: (
+        default: #4f46e5, // indigo-600
+        foreground: #ffffff,
+        --dark-default: #6366f1, // indigo-500
+        --dark-foreground: #ffffff,
+    ),
+    #secondary: (
+        default: #f1f5f9, // slate-100
+        foreground: #0f172a, // slate-900
+        --dark-default: #1f2937, // slate-800
+        --dark-foreground: #e5e7eb, // slate-200
+    ),
+    #muted: (
+        default: #f1f5f9, // slate-100
+        foreground: #64748b, // slate-500
+        --dark-default: #1f2937, // slate-800
+        --dark-foreground: #94a3b8, // slate-400
+    ),
+    #accent: (
+        default: #eef2ff, // indigo-50
+        foreground: #312e81, // indigo-900
+        --dark-default: #334155, // slate-700 (subtle dark surface)
+        --dark-foreground: #e0e7ff, // indigo-100
+    ),
+    #destructive: (
+        default: #ef4444, // red-500
+        foreground: #ffffff,
+        --dark-default: #dc2626, // red-600
+        --dark-foreground: #ffffff,
+    ),
+    #border: (
+        default: #e2e8f0, // slate-200
+        --dark-default: #334155, // slate-700
+    ),
+    #input: (
+        default: #e2e8f0, // slate-200
+        --dark-default: #334155, // slate-700
+    ),
+    #ring: (
+        default: #4f46e5, // indigo-600
+        --dark-default: #6366f1, // indigo-500
+    ),
+    #panel: (
+        default: #ffffff,
+        foreground: #0f172a,
+        --dark-default: #0f172a,
+        --dark-foreground: #e6e7ea,
+    )
+);
