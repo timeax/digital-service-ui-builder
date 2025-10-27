@@ -12,6 +12,7 @@ import type {
 import { compilePolicies, PolicyDiagnostic } from "../../core/policy";
 import { DynamicRule, FallbackSettings } from "../../schema/validation";
 import { DgpServiceCapability, DgpServiceMap } from "../../schema/provider";
+import { constraintFitOk, rateOk, toFiniteNumber } from "../../utils/util";
 
 const MAX_LIMIT = 100;
 type WireKind = "bind" | "include" | "exclude" | "service";
@@ -274,42 +275,48 @@ export class Editor {
 
         const id = opts.id ?? this.uniqueId(src.id);
         const label = (opts.labelStrategy ?? nextCopyLabel)(src.label ?? id);
-
-        // name: only if present; ensure uniqueness across user-input fields
         const name = opts.nameStrategy
             ? opts.nameStrategy(src.name)
             : nextCopyName(src.name);
 
-        // duplicate options (generate unique option ids)
+        // helper to create new option ids
         const optId = (old: string) =>
             this.uniqueOptionId(
                 id,
                 (opts.optionIdStrategy ?? defaultOptionIdStrategy)(old),
             );
 
+        // deep copy options with new ids
+        const clonedOptions = (src.options ?? []).map((o) => ({
+            ...o,
+            id: optId(o.id),
+            label: (opts.labelStrategy ?? nextCopyLabel)(o.label ?? o.id),
+        }));
+
         const cloned = {
             ...src,
             id,
             label,
             name,
-            // bind_id
             bind_id: (opts.copyBindings ?? true) ? src.bind_id : undefined,
-            // deep copy options with new ids
-            options: (src.options ?? []).map((o) => ({
-                ...o,
-                id: optId(o.id),
-                label: (opts.labelStrategy ?? nextCopyLabel)(o.label ?? o.id),
-            })),
+            options: clonedOptions,
         } as typeof src;
 
+        // map: oldOptId -> newOptId (only if options exist)
+        const optionIdMap = new Map<string, string>();
+        (src.options ?? []).forEach((o, i) => {
+            const newOptId = clonedOptions[i]?.id ?? o.id;
+            optionIdMap.set(o.id, newOptId);
+        });
+
         this.patchProps((p) => {
-            // insert after original
+            // insert clone after original
             const arr = p.fields ?? [];
             const idx = arr.findIndex((f) => f.id === fieldId);
             arr.splice(idx + 1, 0, cloned as any);
             p.fields = arr;
 
-            // copy includes/excludes (tags -> fields)
+            // copy tag-level includes/excludes (field ids)
             if (opts.copyIncludesExcludes) {
                 for (const t of p.filters ?? []) {
                     if (t.includes?.includes(fieldId)) {
@@ -325,31 +332,42 @@ export class Editor {
                 }
             }
 
-            // copy option maps (option-level include/exclude)
+            // copy button maps (keys are only field ids OR option ids)
             if (opts.copyOptionMaps) {
                 const maps: Array<
-                    "includes_for_options" | "excludes_for_options"
-                > = ["includes_for_options", "excludes_for_options"];
+                    "includes_for_buttons" | "excludes_for_buttons"
+                > = ["includes_for_buttons", "excludes_for_buttons"];
+
                 for (const mapKey of maps) {
-                    const m = p[mapKey] ?? {};
-                    const newM: Record<string, string[]> = { ...m };
-                    const optionIdMap = new Map<string, string>(); // oldOptId -> newOptId
-                    (src.options ?? []).forEach((o, i) => {
-                        const newOptId = (cloned.options ?? [])[i]?.id ?? o.id;
-                        optionIdMap.set(o.id, newOptId);
-                    });
-                    for (const [key, arrIds] of Object.entries(m)) {
-                        const [kField, kOpt] = key.split("::");
-                        if (
-                            kField === fieldId &&
-                            kOpt &&
-                            optionIdMap.has(kOpt)
-                        ) {
-                            const newKey = `${id}::${optionIdMap.get(kOpt)}`;
-                            newM[newKey] = Array.from(new Set(arrIds)); // shallow copy
+                    const srcMap = (p as any)[mapKey] ?? {};
+                    const nextMap: Record<string, string[]> = { ...srcMap };
+
+                    for (const [key, targets] of Object.entries(
+                        srcMap as Record<string, string[]>,
+                    )) {
+                        // A) non-option button: key === original field id → duplicate under new field id
+                        if (key === fieldId) {
+                            const newKey = id;
+                            const merged = new Set([
+                                ...(nextMap[newKey] ?? []),
+                                ...targets,
+                            ]);
+                            nextMap[newKey] = Array.from(merged);
+                            continue;
+                        }
+
+                        // B) option button: key === one of the original option ids → duplicate under new option id
+                        if (optionIdMap.has(key)) {
+                            const newKey = optionIdMap.get(key)!;
+                            const merged = new Set([
+                                ...(nextMap[newKey] ?? []),
+                                ...targets,
+                            ]);
+                            nextMap[newKey] = Array.from(merged);
                         }
                     }
-                    p[mapKey] = newM as any;
+
+                    (p as any)[mapKey] = nextMap;
                 }
             }
         });
@@ -391,8 +409,8 @@ export class Editor {
                 const oldKey = `${fieldId}::${optionId}`;
                 const newKey = `${fieldId}::${newId}`;
                 for (const mapKey of [
-                    "includes_for_options",
-                    "excludes_for_options",
+                    "includes_for_buttons",
+                    "excludes_for_buttons",
                 ] as const) {
                     const m = p[mapKey] ?? {};
                     if (m[oldKey]) {
@@ -738,35 +756,33 @@ export class Editor {
             name: "setService",
             do: () =>
                 this.patchProps((p) => {
-                    // detect whether caller *provided* the key (so we don't delete accidentally)
                     const hasSidKey = Object.prototype.hasOwnProperty.call(
                         input,
                         "service_id",
                     );
-
                     const validId =
                         hasSidKey &&
                         typeof input.service_id === "number" &&
                         Number.isFinite(input.service_id);
-
                     const sid: number | undefined = validId
                         ? Number(input.service_id)
                         : undefined;
                     const nextRole = input.pricing_role;
 
+                    // ── TAG ───────────────────────────────────────────────────
                     if (isTagId(id)) {
                         const t = (p.filters ?? []).find((x) => x.id === id);
                         if (!t) return;
 
-                        // Only touch tag.service_id if caller provided the key
+                        // role not applicable for tags
                         if (hasSidKey) {
-                            if (sid === undefined) delete t.service_id;
+                            if (sid === undefined) delete (t as any).service_id;
                             else t.service_id = sid;
                         }
-                        // pricing_role is not applicable to tags (ignored)
                         return;
                     }
 
+                    // ── OPTION ───────────────────────────────────────────────
                     if (isOptionId(id)) {
                         const own = ownerOfOption(p, id);
                         if (!own) return;
@@ -782,24 +798,22 @@ export class Editor {
                         const role = nextRole ?? currentRole;
 
                         if (role === "utility") {
-                            // Hard guard: utilities cannot have service_id
+                            // Utilities cannot have service_id, and if switching to utility, strip any existing sid.
                             if (hasSidKey && sid !== undefined) {
                                 this.api.emit("error", {
-                                    message: "Utilities cannot have service_id",
+                                    message:
+                                        "Utilities cannot have service_id (option).",
                                     code: "utility_service_conflict",
                                     meta: { id, service_id: sid },
                                 });
                             }
-                            // Ensure role and strip any existing service_id
                             o.pricing_role = "utility";
                             if ("service_id" in o) delete (o as any).service_id;
                             return;
                         }
 
-                        // role === 'base' here
+                        // role === 'base'
                         if (nextRole) o.pricing_role = "base";
-
-                        // Only set/clear service_id when the key is explicitly provided
                         if (hasSidKey) {
                             if (sid === undefined) delete (o as any).service_id;
                             else o.service_id = sid;
@@ -807,9 +821,81 @@ export class Editor {
                         return;
                     }
 
-                    throw new Error(
-                        'setService only supports tag ("t:*") or option ("o:*") ids',
-                    );
+                    // ── FIELD (button-able) ─────────────────────────────────
+                    // Field ids usually look like "f:*" in your project; we’ll treat any non-tag/non-option as field.
+                    const f = (p.fields ?? []).find((x) => x.id === id);
+                    if (!f) {
+                        throw new Error(
+                            'setService only supports tag ("t:*"), option ("o:*"), or field ("f:*") ids',
+                        );
+                    }
+
+                    const isOptionBased =
+                        Array.isArray(f.options) && f.options.length > 0;
+                    const isButton = !!(f as any).button;
+
+                    // Move/normalize role at field level if provided
+                    if (nextRole) {
+                        f.pricing_role = nextRole;
+                    }
+                    const effectiveRole = (f.pricing_role ?? "base") as
+                        | "base"
+                        | "utility";
+
+                    // If the field is option-based, services must live on options, not on the field.
+                    if (isOptionBased) {
+                        if (hasSidKey) {
+                            this.api.emit("error", {
+                                message:
+                                    "Cannot set service_id on an option-based field. Assign service_id on its options instead.",
+                                code: "field_option_based_service_forbidden",
+                                meta: { id, service_id: sid },
+                            });
+                        }
+                        // Still allow changing pricing_role at field level (acts as a default for options),
+                        // but never write/keep service_id on the field itself.
+                        if ("service_id" in (f as any))
+                            delete (f as any).service_id;
+                        return;
+                    }
+
+                    // For non-option fields, only "button" fields are allowed to carry a service_id.
+                    if (!isButton) {
+                        if (hasSidKey) {
+                            this.api.emit("error", {
+                                message:
+                                    "Only button fields (without options) can have a service_id.",
+                                code: "non_button_field_service_forbidden",
+                                meta: { id, service_id: sid },
+                            });
+                        }
+                        // Ensure we don't keep any stray sid
+                        if ("service_id" in (f as any))
+                            delete (f as any).service_id;
+                        return;
+                    }
+
+                    // Button field + role checks
+                    if (effectiveRole === "utility") {
+                        // Utilities cannot have service_id at all.
+                        if (hasSidKey && sid !== undefined) {
+                            this.api.emit("error", {
+                                message:
+                                    "Utilities cannot have service_id (field).",
+                                code: "utility_service_conflict",
+                                meta: { id, service_id: sid },
+                            });
+                        }
+                        if ("service_id" in (f as any))
+                            delete (f as any).service_id;
+                        return;
+                    }
+
+                    // Button field with role 'base' → allow setting/clearing sid
+                    if (hasSidKey) {
+                        if (sid === undefined) delete (f as any).service_id;
+                        else (f as any).service_id = sid;
+                    }
                 }),
             undo: () => this.api.undo(),
         });
@@ -907,6 +993,7 @@ export class Editor {
             name: "updateField",
             do: () =>
                 this.patchProps((p) => {
+                    // @ts-ignore
                     p.fields = (p.fields ?? []).map((f) => {
                         if (f.id !== id) return f;
                         prev = f;
@@ -932,8 +1019,8 @@ export class Editor {
                     p.fields = (p.fields ?? []).filter((f) => f.id !== id);
                     // prune option maps that reference this field
                     for (const mapKey of [
-                        "includes_for_options",
-                        "excludes_for_options",
+                        "includes_for_buttons",
+                        "excludes_for_buttons",
                     ] as const) {
                         const m = p[mapKey];
                         if (!m) continue;
@@ -1666,9 +1753,10 @@ export class Editor {
             }
 
             // Constraints (only flags explicitly true at tag are "required")
-            const fitsConstraints = constraintsOk(
-                cap,
-                ctx.effectiveConstraints,
+            const fitsConstraints = constraintFitOk(
+                svcMap,
+                cap.id,
+                ctx.effectiveConstraints ?? {},
             );
 
             // Rate policy vs primary (if any); if no primary, consider pass
@@ -1766,55 +1854,6 @@ function normalizeQuantityRule(input: unknown): QuantityRule | undefined {
     }
     // For non-eval, any provided code is dropped.
     return out;
-}
-
-// ------------------------ Local helpers (your snippets, unchanged in spirit) --
-
-function toFiniteNumber(v: unknown): number {
-    const n = Number(v);
-    return Number.isFinite(n) ? n : NaN;
-}
-
-function rateOk(
-    svcMap: DgpServiceMap,
-    candidate: number | string,
-    primary: number | string,
-    policy: FallbackSettings,
-): boolean {
-    const cand = svcMap[Number(candidate)];
-    const prim = svcMap[Number(primary)];
-    if (!cand || !prim) return false;
-
-    const cRate = toFiniteNumber(cand.rate);
-    const pRate = toFiniteNumber(prim.rate);
-    if (!Number.isFinite(cRate) || !Number.isFinite(pRate)) return false;
-
-    const rp = policy.ratePolicy ?? { kind: "lte_primary" as const };
-    switch (rp.kind) {
-        case "lte_primary":
-            return cRate <= pRate;
-        case "within_pct": {
-            const pct = Math.max(0, rp.pct ?? 0);
-            return cRate <= pRate * (1 + pct / 100);
-        }
-        case "at_least_pct_lower": {
-            const pct = Math.max(0, rp.pct ?? 0);
-            return cRate <= pRate * (1 - pct / 100);
-        }
-        default:
-            return false;
-    }
-}
-
-function constraintsOk(
-    cap: DgpServiceCapability,
-    eff: Partial<Record<"refill" | "cancel" | "dripfeed", boolean>> | undefined,
-): boolean {
-    if (!eff) return true;
-    if (eff.dripfeed === true && !cap.dripfeed) return false;
-    if (eff.refill === true && !cap.refill) return false;
-    if (eff.cancel === true && !cap.cancel) return false;
-    return true;
 }
 
 // ---- Policy evaluation (compiled rules) -------------------------------------

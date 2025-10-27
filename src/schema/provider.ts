@@ -1,6 +1,7 @@
 /** Minimal capability shape sourced from DgpService */
 export type DgpServiceCapability = {
     id: number;
+    name?: string;                    // human-friendly name
     key?: string;                     // provider key if relevant
     rate?: number;                    // canonical numeric rate
     min?: number;                     // min order qty

@@ -157,8 +157,8 @@ export function validate(
     /* ────────────────────────────────────────────────────────────────
      * 3) OPTION MAPS: key validity + conflict
      * ──────────────────────────────────────────────────────────────── */
-    const incMap = props.includes_for_options ?? {};
-    const excMap = props.excludes_for_options ?? {};
+    const incMap = props.includes_for_buttons ?? {};
+    const excMap = props.excludes_for_buttons ?? {};
 
     const parseKey = (key: string): { fieldId: string; optionId: string } | null => {
         const [fid, oid] = key.split('::');
@@ -205,8 +205,8 @@ export function validate(
         const excludesTag = new Set(tag?.excludes ?? []);
 
         // Option-level maps only for the provided selections
-        const incForOpt = props.includes_for_options ?? {};
-        const excForOpt = props.excludes_for_options ?? {};
+        const incForOpt = props.includes_for_buttons ?? {};
+        const excForOpt = props.excludes_for_buttons ?? {};
 
         const includesOpt = new Set<string>();
         const excludesOpt = new Set<string>();
@@ -583,7 +583,7 @@ export function validate(
         }
 
         const includedByOption = new Set<string>();
-        for (const arr of Object.values(props.includes_for_options ?? {})) {
+        for (const arr of Object.values(props.includes_for_buttons ?? {})) {
             for (const id of arr ?? []) includedByOption.add(id);
         }
 

@@ -79,8 +79,8 @@ describe('Builder', () => {
                 {id: 'base', label: 'Base', type: 'text', bind_id: 'T'},
                 {id: 'util', label: 'Util', type: 'text'}, // not bound; will be included by option map
             ],
-            includes_for_options: {'toggle::on': ['util']},
-            excludes_for_options: {'toggle::on': ['base']},
+            includes_for_buttons: {'toggle::on': ['util']},
+            excludes_for_buttons: {'toggle::on': ['base']},
         });
 
         const visOn = b.visibleFields('T', ['toggle::on']);
@@ -103,7 +103,7 @@ describe('Builder', () => {
                 },
                 {id: 'showme', label: 'ShowMe', type: 'text'},
             ],
-            includes_for_options: {'toggle::on': ['showme']},
+            includes_for_buttons: {'toggle::on': ['showme']},
         });
 
         b.setOptions({selectedOptionKeys: ['toggle::on']});
@@ -141,10 +141,10 @@ describe('Builder', () => {
                 // regular bound field
                 {id: 'f1', label: 'F1', type: 'text', bind_id: 'T'},
             ],
-            includes_for_options: {
+            includes_for_buttons: {
                 'f1::o1': ['u_ref', 'ghost_field'],
             },
-            excludes_for_options: {
+            excludes_for_buttons: {
                 'f1::o2': ['ghost_field'],
             },
         });
@@ -157,8 +157,8 @@ describe('Builder', () => {
         expect(fieldIds).toContain('f1');
 
         // option maps pruned to existing field ids only
-        expect(cleaned.includes_for_options?.['f1::o1']).toEqual(['u_ref']);
-        expect(cleaned.excludes_for_options?.['f1::o2']).toBeUndefined(); // entire entry removed (all ghost)
+        expect(cleaned.includes_for_buttons?.['f1::o1']).toEqual(['u_ref']);
+        expect(cleaned.excludes_for_buttons?.['f1::o2']).toBeUndefined(); // entire entry removed (all ghost)
     });
 
     it('undo()/redo() restore previous/next props snapshots', () => {

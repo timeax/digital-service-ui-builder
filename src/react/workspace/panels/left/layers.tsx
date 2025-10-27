@@ -1,8 +1,10 @@
 import React from 'react';
-import { useUi } from '../ui-bridge';
-import { useCanvasAPI } from '../../canvas/context';
-import type { ServiceProps, Tag } from '../../../schema';
-import { Selection } from '../../canvas/selection';
+import { useCanvasAPI } from '../../../canvas/context';
+import type { ServiceProps, Tag } from '../../../../schema';
+import { Selection } from '../../../canvas/selection';
+import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 type TreeNode = {
     id: string;
@@ -35,8 +37,7 @@ function buildTagTree(tags: Tag[]): TreeNode[] {
     return roots;
 }
 
-export function StructurePanel() {
-    const { Button, Separator, cn } = useUi();
+export function Layers() {
     const api = useCanvasAPI();
     const builder = api['builder'] ?? (api as any).getBuilder?.(); // tolerate either shape
 

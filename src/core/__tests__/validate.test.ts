@@ -73,11 +73,11 @@ describe('validate()', () => {
                     options: [{id: 'o1', label: 'O1'}],
                 },
             ],
-            includes_for_options: {
+            includes_for_buttons: {
                 'f1::o1': ['x'],
                 'f1::bad': ['y'], // bad key (option not found)
             },
-            excludes_for_options: {
+            excludes_for_buttons: {
                 'f1::o1': ['z'], // conflict with includes_for_options
             },
         };
@@ -311,8 +311,8 @@ describe('validate()', () => {
                     options: [{id: 'u', label: 'U', service_id: 2, pricing_role: 'utility'}],
                 },
             ],
-            includes_for_options: {'toggle::on': ['util']},
-            excludes_for_options: {'toggle::on': ['base']}, // <-- hide base when "on"
+            includes_for_buttons: {'toggle::on': ['util']},
+            excludes_for_buttons: {'toggle::on': ['base']}, // <-- hide base when "on"
         };
 
         const out = validate(props, {selectedOptionKeys: ['toggle::on']});
@@ -344,7 +344,7 @@ describe('validate()', () => {
                     ]
                 }
             ],
-            excludes_for_options: {
+            excludes_for_buttons: {
                 'toggle::hideBase': ['base']
             }
         };
@@ -431,7 +431,7 @@ describe('validate()', () => {
                 },
                 {id: 'incByOpt', label: 'IncludedByOption', type: 'text'},
             ],
-            includes_for_options: {'toggle::on': ['incByOpt']},
+            includes_for_buttons: {'toggle::on': ['incByOpt']},
         };
         const out = validate(props);
         expect(out.some(e => e.code === 'field_unbound' && e.nodeId === 'incByOpt')).toBe(false);

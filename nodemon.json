@@ -1,0 +1,20 @@
+{
+    "watch": ["src", "tsup.config.ts"],
+    "ext": "ts,tsx,js,jsx,json",
+    "ignore": [
+        "dist/**",
+        "node_modules/**",
+        "schema/**/*.schema.json",
+        "schema/**/*.json",
+        "playground/**",
+        "__tests__/**"
+    ],
+    "exec": "npx tsup",
+    "delay": "300ms",
+    "restartable": "rs",
+    "env": {
+        "NODE_ENV": "development"
+    },
+    "quiet": true,
+    "legacyWatch": false
+}

@@ -62,8 +62,8 @@ describe('normalise()', () => {
         expect(f1.options?.[0].service_id).toBe(1001);
 
         // option maps
-        expect(out.includes_for_options).toEqual({'f1::o1': ['f2']});
-        expect(out.excludes_for_options).toEqual({'f1::o2': ['f3']});
+        expect(out.includes_for_buttons).toEqual({'f1::o1': ['f2']});
+        expect(out.excludes_for_buttons).toEqual({'f1::o2': ['f3']});
     });
 
     it('normalises bind_id: single => string, multi => array, dedupes arrays', () => {

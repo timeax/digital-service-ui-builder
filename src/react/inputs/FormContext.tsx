@@ -1,6 +1,13 @@
-import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
-import type {ReactNode} from 'react';
-import type {Scalar} from '../../schema/order';
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
+import type { ReactNode } from "react";
+import type { Scalar } from "../../schema/order";
 
 export type FormSnapshot = {
     values: Record<string, Scalar | Scalar[]>;
@@ -27,58 +34,75 @@ export type FormApi = {
 const FormCtx = createContext<FormApi | null>(null);
 
 export function FormProvider({
-                                 initial,
-                                 children,
-                             }: {
+    initial,
+    children,
+}: {
     initial?: Partial<FormSnapshot>;
     children: ReactNode;
 }) {
-    const [values, setValues] = useState<Record<string, Scalar | Scalar[]>>(initial?.values ?? {});
-    const [selections, setSelections] = useState<Record<string, string[]>>(initial?.selections ?? {});
+    const [values, setValues] = useState<Record<string, Scalar | Scalar[]>>(
+        initial?.values ?? {},
+    );
+    const [selections, setSelections] = useState<Record<string, string[]>>(
+        initial?.selections ?? {},
+    );
     const subsRef = useRef(new Set<() => void>());
 
     const publish = useCallback(() => {
         for (const fn of Array.from(subsRef.current)) {
-            try { fn(); } catch { /* noop */ }
+            try {
+                fn();
+            } catch {
+                /* noop */
+            }
         }
     }, []);
 
-    const api = useMemo<FormApi>(() => ({
-        get: (fieldId) => values[fieldId],
-        set: (fieldId, value) => {
-            setValues(prev => {
-                if (prev[fieldId] === value) return prev;
-                const next = {...prev, [fieldId]: value};
-                return next;
-            });
-            publish();
-        },
+    const api = useMemo<FormApi>(
+        () => ({
+            get: (fieldId) => values[fieldId],
+            set: (fieldId, value) => {
+                setValues((prev) => {
+                    if (prev[fieldId] === value) return prev;
+                    const next = { ...prev, [fieldId]: value };
+                    return next;
+                });
+                publish();
+            },
 
-        getSelections: (fieldId) => selections[fieldId] ?? [],
-        setSelections: (fieldId, optionIds) => {
-            setSelections(prev => {
-                const next = {...prev, [fieldId]: Array.from(new Set(optionIds))};
-                return next;
-            });
-            publish();
-        },
-        toggleSelection: (fieldId, optionId) => {
-            setSelections(prev => {
-                const cur = new Set(prev[fieldId] ?? []);
-                if (cur.has(optionId)) cur.delete(optionId);
-                else cur.add(optionId);
-                return {...prev, [fieldId]: Array.from(cur)};
-            });
-            publish();
-        },
+            getSelections: (fieldId) => selections[fieldId] ?? [],
+            setSelections: (fieldId, optionIds) => {
+                setSelections((prev) => {
+                    const next = {
+                        ...prev,
+                        [fieldId]: Array.from(new Set(optionIds)),
+                    };
+                    return next;
+                });
+                publish();
+            },
+            toggleSelection: (fieldId, optionId) => {
+                setSelections((prev) => {
+                    const cur = new Set(prev[fieldId] ?? []);
+                    if (cur.has(optionId)) cur.delete(optionId);
+                    else cur.add(optionId);
+                    return { ...prev, [fieldId]: Array.from(cur) };
+                });
+                publish();
+            },
 
-        snapshot: () => ({values: {...values}, selections: {...selections}}),
+            snapshot: () => ({
+                values: { ...values },
+                selections: { ...selections },
+            }),
 
-        subscribe: (fn) => {
-            subsRef.current.add(fn);
-            return () => subsRef.current.delete(fn);
-        },
-    }), [publish, selections, values]);
+            subscribe: (fn) => {
+                subsRef.current.add(fn);
+                return () => subsRef.current.delete(fn);
+            },
+        }),
+        [publish, selections, values],
+    );
 
     return <FormCtx.Provider value={api}>{children}</FormCtx.Provider>;
 }
@@ -86,7 +110,7 @@ export function FormProvider({
 /** Strict hook (throws if no provider) */
 export function useFormApi(): FormApi {
     const ctx = useContext(FormCtx);
-    if (!ctx) throw new Error('useFormApi must be used within <FormProvider>');
+    if (!ctx) throw new Error("useFormApi must be used within <FormProvider>");
     return ctx;
 }
 
@@ -104,7 +128,7 @@ export function useFormField(fieldId: string): {
     const api = useFormApi();
     const value = api.get(fieldId);
     const set = (v: Scalar | Scalar[]) => api.set(fieldId, v);
-    return {value, set};
+    return { value, set };
 }
 
 export function useFormSelections(fieldId: string): {
