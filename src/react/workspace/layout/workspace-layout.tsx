@@ -16,9 +16,9 @@ export interface WorkspaceLayoutProps {
 }
 
 /** Internal layout constraints (px) */
-const LEFT_MIN = 240;
+const LEFT_MIN = 200;
 const LEFT_MAX = 480;
-const LEFT_COLLAPSED = 56;
+const LEFT_COLLAPSED = 0;
 
 const RIGHT_MIN = 300;
 const RIGHT_MAX = 560;
@@ -220,8 +220,8 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
                     className={clsx(
                         "h-full border-r overflow-hidden",
                         leftProps["data-collapsed"]
-                            ? "w-14 min-w-[56px] max-w-[56px]"
-                            : "min-w-[240px] max-w-[480px]",
+                            ? "w-0 min-w-[0px] max-w-[0px]"
+                            : "min-w-[200px] max-w-[480px]",
                     )}
                 >
                     {leftPanel}
