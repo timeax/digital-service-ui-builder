@@ -1,12 +1,12 @@
-import type {ServiceProps, Tag, Field} from './index';
-import type {CanvasState} from './canvas-types';
+import type { ServiceProps } from "./index";
+import { SelectionOptions } from "../react/canvas/selection";
 
 export type EditorEvents = {
-    'editor:command': { name: string; payload?: any };
-    'editor:change': { props: ServiceProps; reason: string; command?: string };
-    'editor:undo': { stackSize: number; index: number };
-    'editor:redo': { stackSize: number; index: number };
-    'editor:error': { message: string; code?: string; meta?: any };
+    "editor:command": { name: string; payload?: any };
+    "editor:change": { props: ServiceProps; reason: string; command?: string };
+    "editor:undo": { stackSize: number; index: number };
+    "editor:redo": { stackSize: number; index: number };
+    "editor:error": { message: string; code?: string; meta?: any };
 };
 
 export type Command = {
@@ -28,11 +28,7 @@ export type EditorOptions = {
 
     /** Raw policies JSON; will be compiled on demand by filterServicesForVisibleGroup. */
     policiesRaw?: unknown;
+    selectionProps?: SelectionOptions;
 };
 
-export type ConnectKind = 'bind' | 'include' | 'exclude';
-
-export type EditorSnapshot = {
-    props: ServiceProps;
-    canvas?: Pick<CanvasState, 'positions' | 'viewport' | 'selection'>;
-};
+export type ConnectKind = "bind" | "include" | "exclude";

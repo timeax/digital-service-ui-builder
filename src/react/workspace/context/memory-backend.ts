@@ -23,12 +23,9 @@ import type {
     TemplatesBackend,
     TemplatesListParams,
     WorkspaceBackend,
-    // deprecated shim types
-    AssetsBackendShim,
-    AssetsListParamsShim,
-    AssetsUploadParamsShim,
-    Asset,
 } from "./backend";
+import type { EditorSnapshot } from "../../../schema/editor";
+import type { DgpServiceCapability, DgpServiceMap } from "../../../schema/provider";
 
 /* ---------------- utilities ---------------- */
 
@@ -53,7 +50,7 @@ const genId = (p: string, i: number): Id => `${p}-${i}`;
 
 /* ---------------- seed & store ---------------- */
 
-export interface MemorySeed<TData extends object = Record<string, unknown>> {
+export interface MemorySeed {
     workspaceId: string;
     authors?: Author[];
     permissionsForActor?: (ctx: {
@@ -61,9 +58,10 @@ export interface MemorySeed<TData extends object = Record<string, unknown>> {
         actor: Actor;
     }) => PermissionsMap;
     branchNames?: string[]; // default ["main"]
-    initialSnapshot?: ServiceSnapshot<TData>;
+    initialSnapshot?: ServiceSnapshot;
     initialHeadMessage?: string;
     initialDraft?: boolean;
+    services?: readonly DgpServiceCapability[] | DgpServiceMap;
 
     /** Pre-seed field templates */
     templates?: ReadonlyArray<
@@ -83,7 +81,7 @@ export interface MemorySeed<TData extends object = Record<string, unknown>> {
     >;
 }
 
-interface Store<TData extends object> {
+interface Store {
     readonly workspaceId: string;
     authors: Author[];
     permissionsForActor: (actor: Actor) => PermissionsMap;
@@ -93,7 +91,7 @@ interface Store<TData extends object> {
 
     templates: FieldTemplate[];
 
-    snapshot: ServiceSnapshot<TData>;
+    snapshot: ServiceSnapshot;
     head?: Commit;
     draft?: Draft;
 
@@ -102,9 +100,7 @@ interface Store<TData extends object> {
 
 /* ---------------- factory ---------------- */
 
-export function createMemoryWorkspaceBackend<
-    TData extends object = Record<string, unknown>,
->(seed: MemorySeed<TData>): WorkspaceBackend<TData> {
+export function createMemoryWorkspaceBackend(seed: MemorySeed): WorkspaceBackend {
     const wsId = seed.workspaceId;
     let idCounter = 1;
     let versionCounter = 1;
@@ -136,9 +132,9 @@ export function createMemoryWorkspaceBackend<
         : (_actor: Actor) => ({ "*": true });
 
     // snapshot pointers
-    const snapshot: ServiceSnapshot<TData> = seed.initialSnapshot ?? {
+    const snapshot: ServiceSnapshot = seed.initialSnapshot ?? {
         schema_version: "1.0",
-        data: {} as TData,
+        data: {} as EditorSnapshot,
     };
     const head: Commit | undefined = seed.initialHeadMessage
         ? {
@@ -182,7 +178,7 @@ export function createMemoryWorkspaceBackend<
         }),
     );
 
-    const store: Store<TData> = {
+    const store: Store = {
         workspaceId: wsId,
         authors,
         permissionsForActor: perms,
@@ -526,8 +522,8 @@ export function createMemoryWorkspaceBackend<
 
     /* ---------------- snapshots backend ---------------- */
 
-    const snapshotsBackend: SnapshotsBackend<TData> = {
-        async load(params): Result<SnapshotsLoadResult<TData>> {
+    const snapshotsBackend: SnapshotsBackend = {
+        async load(params): Result<SnapshotsLoadResult> {
             if (params.workspaceId !== store.workspaceId)
                 return err("bad_workspace", "Unknown workspace id");
             return ok({
@@ -612,71 +608,21 @@ export function createMemoryWorkspaceBackend<
         },
     };
 
-    /* ---------------- deprecated assets shim (for old callers) ---------------- */
-
-    const assetsShim: AssetsBackendShim = {
-        async list(params: AssetsListParamsShim): Result<readonly Asset[]> {
-            const res = await templatesBackend.list({
-                workspaceId: params.workspaceId,
-                branchId: params.branchId,
-                since: params.since,
-            });
-            return res.ok ? ok(res.value as readonly Asset[]) : res;
-        },
-        async get(assetId: string): Result<Asset | null> {
-            const res = await templatesBackend.get(assetId);
-            return res.ok ? ok((res.value as Asset) ?? null) : res;
-        },
-        async rename(assetId: string, name: string): Result<Asset> {
-            const res = await templatesBackend.update(assetId, { name });
-            return res.ok ? ok(res.value as Asset) : res;
-        },
-        async move(
-            assetId: string,
-            to: Readonly<{ branchId?: string }>,
-        ): Result<Asset> {
-            const res = await templatesBackend.update(assetId, {
-                branchId: to.branchId ?? null,
-            });
-            return res.ok ? ok(res.value as Asset) : res;
-        },
-        async delete(assetId: string): Result<void> {
-            return templatesBackend.delete(assetId);
-        },
-        async url(
-            _assetId: string,
-            _kind?: "view" | "download" | "thumb",
-        ): Result<string> {
-            // Not applicable for templates
-            return ok("");
-        },
-        async refresh(
-            params: Omit<AssetsListParamsShim, "q">,
-        ): Result<readonly Asset[]> {
-            const res = await templatesBackend.refresh({
-                workspaceId: params.workspaceId,
-                branchId: params.branchId,
-                since: params.since,
-            });
-            return res.ok ? ok(res.value as readonly Asset[]) : res;
-        },
-        async upload(_params: AssetsUploadParamsShim): Result<Asset> {
-            return err(
-                "not_supported",
-                "Upload is not supported for templates",
-            );
-        },
-    };
-
     /* ---------------- compose backend ---------------- */
 
-    const backend: WorkspaceBackend<TData> = {
+    const backend: WorkspaceBackend = {
+        info: {
+            id: wsId,
+            name: "Workspace 101",
+            createdAt: nowIso(),
+            updatedAt: nowIso(),
+        },
         authors: authorsBackend,
         permissions: permissionsBackend,
         branches: branchesBackend,
         templates: templatesBackend,
         snapshots: snapshotsBackend,
-        assets: assetsShim, // deprecated shim, present for compatibility
+        services: seed.services,
     };
 
     return backend;

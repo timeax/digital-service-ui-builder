@@ -118,7 +118,7 @@ class BuilderImpl implements Builder {
 
         // 1) tags as nodes
         for (const t of this.props.filters) {
-            nodes.push({ id: t.id, kind: "tag" as NodeKind });
+            nodes.push({ id: t.id, kind: "tag" as NodeKind, label: t.label });
         }
 
         // 2) tag hierarchy edges
@@ -137,6 +137,7 @@ class BuilderImpl implements Builder {
             nodes.push({
                 id: f.id,
                 kind: "field" as NodeKind,
+                label: f.label,
                 bind_type:
                     f.pricing_role === "utility"
                         ? "utility"
@@ -168,7 +169,11 @@ class BuilderImpl implements Builder {
             if (!Array.isArray(f.options)) continue;
 
             for (const o of f.options) {
-                nodes.push({ id: o.id, kind: "option" as NodeKind });
+                nodes.push({
+                    id: o.id,
+                    kind: "option",
+                    label: o.label,
+                });
                 // field → option edge
                 const e: any = {
                     from: f.id,

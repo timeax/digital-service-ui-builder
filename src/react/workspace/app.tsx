@@ -1,3 +1,4 @@
+// src/react/workspace/app.tsx
 import * as React from "react";
 
 import { WorkspaceLayout } from "@/layout/workspace-layout";
@@ -7,55 +8,52 @@ import { WorkspaceProvider } from "./context";
 import type { WorkspaceProviderProps } from "./context";
 import type { Actor, WorkspaceBackend } from "./context/backend";
 import { LeftPanel } from "@/panels/left-panel";
+import FlowCanvas, { type ToolsConfig } from "../adapters/reactflow";
+import { CanvasProvider } from "@/context/context";
 
 /**
  * Props for the Workspace wrapper. Mirrors WorkspaceProvider options.
  */
-export interface WorkspaceProps<
-    TData extends object = Record<string, unknown>,
-> {
-    readonly backend: WorkspaceBackend<TData>;
-    readonly workspaceId: string;
+export interface WorkspaceProps {
+    readonly backend: WorkspaceBackend;
     readonly actor: Actor;
 
     /** Optional pre-hydration to avoid blank first paint */
-    readonly initial?: WorkspaceProviderProps<TData>["initial"];
+    readonly initial?: WorkspaceProviderProps["initial"];
 
     /** Ensure a 'main' branch exists; otherwise first branch is used (default true) */
-    readonly ensureMain?: WorkspaceProviderProps<TData>["ensureMain"];
+    readonly ensureMain?: WorkspaceProviderProps["ensureMain"];
 
     /** Live refresh mode (poll/SSE/WS/off). Defaults to off. */
-    readonly live?: WorkspaceProviderProps<TData>["live"];
+    readonly live?: WorkspaceProviderProps["live"];
 
     /** Autosave debounce window in ms (default 9000) */
-    readonly autosaveMs?: WorkspaceProviderProps<TData>["autosaveMs"];
+    readonly autosaveMs?: WorkspaceProviderProps["autosaveMs"];
 
     /** Auto-run autosave when dirty (default true) */
-    readonly autoAutosave?: WorkspaceProviderProps<TData>["autoAutosave"];
+    readonly autoAutosave?: WorkspaceProviderProps["autoAutosave"];
+    readonly tools?: ToolsConfig;
 }
 
 /**
  * Workspace: wraps app panels with WorkspaceProvider.
  * Accepts the same inputs as WorkspaceProvider and passes them through.
  */
-export function Workspace<TData extends object = Record<string, unknown>>(
-    props: WorkspaceProps<TData>,
-): React.JSX.Element {
+export function Workspace(props: WorkspaceProps): React.JSX.Element {
     const {
         backend,
-        workspaceId,
         actor,
         initial,
         ensureMain,
         live,
         autosaveMs,
         autoAutosave,
+        tools,
     } = props;
 
     return (
-        <WorkspaceProvider<TData>
+        <WorkspaceProvider
             backend={backend}
-            workspaceId={workspaceId}
             actor={actor}
             initial={initial}
             ensureMain={ensureMain}
@@ -63,18 +61,18 @@ export function Workspace<TData extends object = Record<string, unknown>>(
             autosaveMs={autosaveMs}
             autoAutosave={autoAutosave}
         >
-            <BottomBarProvider>
-                <LeftPanelProvider>
-                    <WorkspaceLayout>
-                        <div>
+            <CanvasProvider>
+                <BottomBarProvider>
+                    <LeftPanelProvider>
+                        <WorkspaceLayout>
                             <LeftPanel />
-                        </div>
-                        <div>Workspace Middle</div>
-                        <div>Workspace Right</div>
-                        <div>Workspace Bottom</div>
-                    </WorkspaceLayout>
-                </LeftPanelProvider>
-            </BottomBarProvider>
+                            <FlowCanvas tools={tools ?? {}} showToolbar />
+                            <div>Workspace Right</div>
+                            <div>Workspace Bottom</div>
+                        </WorkspaceLayout>
+                    </LeftPanelProvider>
+                </BottomBarProvider>
+            </CanvasProvider>
         </WorkspaceProvider>
     );
 }

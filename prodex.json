@@ -1,0 +1,20 @@
+{
+    "$schema": "https://raw.githubusercontent.com/emxhive/prodex/main/schema/prodex.schema.json",
+    "outDir": "prodex",
+    "scanDepth": 5,
+    "limit": 200,
+    "resolverDepth": 10,
+    "entry": {
+        "includes": ["src", "src/schema"],
+        "excludes": ["src/react/workspace", "src/styles", "**/__tests__/**"],
+        "priority": ["src/index.ts", "src/react/index.ts"]
+    },
+    "imports": {
+        "includes": ["**/*.d.ts", "**/*.interface.ts", "src/schema/**"],
+        "excludes": ["node_modules/**", "**/components/ui/**"],
+        "aliases": {
+            "@hooks": "resources/js/hooks",
+            "@data": "resources/js/data"
+        }
+    }
+}

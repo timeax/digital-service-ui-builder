@@ -1,12 +1,20 @@
 // src/react/adapters/reactflow/ReactFlowCanvas.tsx
 import React, { useMemo, useState } from "react";
-import ReactFlow, { Background, Controls, MiniMap } from "reactflow";
+import ReactFlow, {
+    Background,
+    ConnectionMode,
+    MiniMap,
+} from "reactflow";
 import "reactflow/dist/style.css";
 
-import { useReactFlowAdapter, type AdapterOptions } from "./adapter";
+import {
+    type AdapterOptions,
+    useReactFlowAdapter,
+} from "../../adapters/reactflow/adapter";
 import type { CanvasAPI } from "../../canvas/api";
-import { Toolbar } from "./Toolbar";
-import type { LabelPlacement, ToolsConfig } from "./toolbar/types";
+import { Toolbar } from "../../adapters/reactflow/Toolbar";
+import type { LabelPlacement, ToolsConfig } from "../../adapters/reactflow";
+import { edgeTypes, nodeTypes } from "@/components/reactflow";
 
 export type ReactFlowCanvasProps = {
     api: CanvasAPI;
@@ -24,7 +32,7 @@ export type ReactFlowCanvasProps = {
     toolbarPositionClassName?: string; // e.g. "left-2 top-2"
 };
 
-export function ReactFlowCanvas({
+export function Canvas({
     api,
     options,
     showToolbar = true,
@@ -32,7 +40,7 @@ export function ReactFlowCanvas({
     labelPlacement = "tooltip",
     renderTool,
     initialShowGrid = true,
-    initialShowMiniMap = true,
+    initialShowMiniMap = false,
     toolbarPositionClassName = "left-2 top-2",
 }: ReactFlowCanvasProps) {
     const [showGrid, setShowGrid] = useState(initialShowGrid);
@@ -50,7 +58,7 @@ export function ReactFlowCanvas({
         onSelectionChange,
         isValidConnection,
         snapVector,
-    } = useReactFlowAdapter(api, { ...options });
+    } = useReactFlowAdapter(api, options);
 
     const snapToGrid = useMemo(
         () => !!options?.snapToGrid,
@@ -62,10 +70,13 @@ export function ReactFlowCanvas({
     );
 
     return (
-        <div className="relative h-full w-full">
+        <div className="relative h-full w-full bg-gray-50">
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                connectionMode={ConnectionMode.Loose}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnectStart={onConnectStart}
@@ -98,7 +109,6 @@ export function ReactFlowCanvas({
                 )}
 
                 {showMiniMap && <MiniMap />}
-                <Controls />
                 {showGrid && <Background />}
             </ReactFlow>
         </div>

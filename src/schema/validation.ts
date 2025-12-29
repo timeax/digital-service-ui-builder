@@ -47,7 +47,9 @@ export type ValidationCode =
 export type ValidationError = {
     code: ValidationCode;
     nodeId?: string; // tag/field/option id
-    details?: Record<string, unknown>;
+    details?: Record<string, unknown> & {
+        affectedIds?: string[]
+    };
 };
 
 export type DynamicRule = {

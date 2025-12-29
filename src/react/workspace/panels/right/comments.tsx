@@ -1,5 +1,5 @@
 import React from "react";
-import { useCanvasAPI } from "../../../canvas/context";
+import { useCanvasAPI } from "../../context/context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 

@@ -12,6 +12,7 @@ import type { EdgeKind, GraphSnapshot } from "../../schema/graph";
 import { CommentsAPI } from "./comments";
 import { CanvasBackendOptions } from "./backend";
 import { Editor } from "./editor";
+import { Selection } from "./selection";
 
 export class CanvasAPI {
     private bus = new EventBus<CanvasEvents>();
@@ -20,6 +21,7 @@ export class CanvasAPI {
     public readonly editor: Editor;
     private readonly autoEmit: boolean;
     readonly comments: CommentsAPI;
+    readonly selection: Selection;
 
     constructor(
         builder: Builder,
@@ -27,7 +29,10 @@ export class CanvasAPI {
     ) {
         this.builder = builder;
         this.autoEmit = opts.autoEmitState ?? true;
-
+        this.selection = new Selection(builder, {
+            env: "workspace",
+            rootTagId: "t:root",
+        });
         const graph = builder.tree();
         this.state = {
             graph,
@@ -205,6 +210,7 @@ export class CanvasAPI {
     }
 
     private edgeRel: EdgeKind = "bind";
+
     getEdgeRel(): EdgeKind {
         return this.edgeRel;
     }
@@ -212,7 +218,7 @@ export class CanvasAPI {
     public setEdgeRel(rel: EdgeKind) {
         if (this.edgeRel === rel) return; // ← correct: skip only if identical
         this.edgeRel = rel;
-        this.refreshGraph();
+        this.bus.emit('edge:change', rel);
     }
 
     /* ─── Option-node visibility (per field) ───────────────────────────────── */

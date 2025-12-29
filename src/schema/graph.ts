@@ -1,3 +1,5 @@
+import type { NodeProps } from "reactflow";
+
 export type NodeKind = "tag" | "field" | "comment" | "option";
 export type EdgeKind =
     | "child"
@@ -12,6 +14,7 @@ export type GraphNode = {
     kind: NodeKind;
     bind_type?: "bound" | "utility" | null; // for fields: bound vs unbound helper
     errors?: string[]; // node-local error codes
+    label: string;
 };
 
 export type GraphEdge = {
@@ -22,3 +25,8 @@ export type GraphEdge = {
 };
 
 export type GraphSnapshot = { nodes: GraphNode[]; edges: GraphEdge[] };
+
+export type FlowNode = NodeProps<{
+    node: GraphNode;
+    [x: string]: any;
+}>;

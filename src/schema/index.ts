@@ -37,6 +37,25 @@ export interface BaseFieldUI {
     defaults?: Record<string, unknown>;
 }
 
+const ui: Record<string, Ui> = {
+    multiselect: {
+        type: "boolean",
+    },
+    search: {
+        type: "boolean",
+    },
+    autocomplete: {
+        type: "boolean",
+    },
+
+    autocompleteItems: {
+        type: "array",
+        item: {
+            type: "string",
+        }
+    }
+}
+
 export type Ui = UiString | UiNumber | UiBoolean | UiAnyOf | UiArray | UiObject;
 
 /** string */

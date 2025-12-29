@@ -22,7 +22,14 @@ import {
     TemplateCreateInput,
     TemplateUpdatePatch,
     WorkspaceBackend,
+    WorkspaceInfo,
 } from "./backend";
+import type { EditorSnapshot } from "../../../schema/editor";
+import type {
+    DgpServiceCapability,
+    DgpServiceMap,
+} from "../../../schema/provider";
+import { useContext } from "react";
 
 /* ---------------- small helpers ---------------- */
 
@@ -38,6 +45,9 @@ export type SnapshotState = "clean" | "dirty" | "uncommitted" | "saving";
 type RunOk = { ok: true };
 type RunErr = { ok: false; errors: BackendError[] };
 type RunResult = RunOk | RunErr;
+
+// Stable default — avoids a new object per render
+const LIVE_OFF: LiveOptions = Object.freeze({ mode: "off" as const });
 
 function toBackendError(e: unknown): BackendError {
     if (
@@ -69,11 +79,8 @@ async function runTasks(
 
 /* ---------------- provider props & slices ---------------- */
 
-export interface WorkspaceProviderProps<
-    TData extends object = Record<string, unknown>,
-> {
-    readonly backend: WorkspaceBackend<TData>;
-    readonly workspaceId: string;
+export interface WorkspaceProviderProps {
+    readonly backend: WorkspaceBackend;
     readonly actor: Actor;
     readonly initial?: Partial<{
         authors: readonly Author[];
@@ -81,10 +88,11 @@ export interface WorkspaceProviderProps<
         branches: readonly Branch[];
         mainId: string;
         templates: readonly FieldTemplate[];
-        snapshot: ServiceSnapshot<TData>;
+        snapshot: ServiceSnapshot;
         head?: Commit;
         draft?: Draft;
         currentBranchId?: string;
+        services?: readonly DgpServiceCapability[] | DgpServiceMap;
     }>;
     readonly ensureMain?: boolean;
     readonly live?: LiveOptions;
@@ -102,9 +110,9 @@ interface BranchesSlice {
     readonly updatedAt?: number;
 }
 
-interface SnapshotSlice<TData extends object> {
+interface SnapshotSlice {
     readonly schemaVersion?: string;
-    readonly data?: TData;
+    readonly data?: EditorSnapshot;
     readonly head?: Commit;
     readonly draft?: Draft;
     readonly state: SnapshotState;
@@ -116,14 +124,15 @@ interface SnapshotSlice<TData extends object> {
 
 /* ---------------- public API ---------------- */
 
-interface WorkspaceAPI<TData extends object> {
-    readonly workspaceId: string;
+interface WorkspaceAPI {
+    readonly info: WorkspaceInfo;
     readonly actor: Actor;
 
     readonly authors: Loadable<readonly Author[]>;
     readonly permissions: Loadable<PermissionsMap>;
     readonly branches: BranchesSlice;
     readonly templates: Loadable<readonly FieldTemplate[]>;
+    readonly services: Loadable<DgpServiceMap>;
 
     readonly refresh: {
         all(opts?: { strict?: boolean }): Promise<RunResult>;
@@ -133,6 +142,7 @@ interface WorkspaceAPI<TData extends object> {
         templates(
             params?: Partial<Pick<TemplatesListParams, "branchId" | "since">>,
         ): Promise<void>;
+        services(): Promise<void>;
     };
 
     readonly setCurrentBranch: (id: string) => void;
@@ -169,7 +179,9 @@ interface WorkspaceAPI<TData extends object> {
     readonly deleteTemplate: (id: string) => Result<void>;
 
     readonly invalidate: (
-        keys?: Array<"authors" | "permissions" | "branches" | "templates">,
+        keys?: Array<
+            "authors" | "permissions" | "branches" | "templates" | "services"
+        >,
     ) => void;
 
     readonly live: {
@@ -186,14 +198,16 @@ interface WorkspaceAPI<TData extends object> {
         readonly head?: Commit;
         readonly draft?: Draft;
         readonly schemaVersion?: string;
-        readonly data?: TData;
+        readonly data?: EditorSnapshot;
         readonly lastSavedAt?: number;
         readonly lastDraftAt?: number;
 
-        set(updater: (curr: TData | undefined) => TData): void;
+        set(
+            updater: (curr: EditorSnapshot | undefined) => EditorSnapshot,
+        ): void;
         load(
             params?: Readonly<{ versionId?: string }>,
-        ): Result<SnapshotsLoadResult<TData>>;
+        ): Result<SnapshotsLoadResult>;
         refresh(): Promise<void>;
         autosave(): Result<Readonly<{ draft: Draft }>>;
         save(message?: string): Result<Readonly<{ commit: Commit }>>;
@@ -204,35 +218,38 @@ interface WorkspaceAPI<TData extends object> {
 
 /* ---------------- context & hook ---------------- */
 
-const WorkspaceContext = React.createContext<WorkspaceAPI<any> | null>(null);
+const WorkspaceContext = React.createContext<WorkspaceAPI | null>(null);
 
-export function useWorkspace<
-    TData extends object = Record<string, unknown>,
->(): WorkspaceAPI<TData> {
+export function useWorkspace(): WorkspaceAPI {
     const ctx = React.useContext(WorkspaceContext);
     if (!ctx)
         throw new Error(
             "useWorkspace() must be used under <WorkspaceProvider/>",
         );
-    return ctx as WorkspaceAPI<TData>;
+    return ctx as WorkspaceAPI;
+}
+
+export function useWorkspaceMaybe(): WorkspaceAPI | null {
+    return useContext(WorkspaceContext);
 }
 
 /* ---------------- provider ---------------- */
 
-export function WorkspaceProvider<
-    TData extends object = Record<string, unknown>,
->(props: WorkspaceProviderProps<TData>): JSX.Element {
+export function WorkspaceProvider(props: WorkspaceProviderProps): JSX.Element {
     const {
         backend,
-        workspaceId,
         actor,
         initial,
         ensureMain = true,
-        live = { mode: "off" },
+        live: liveProp,
         autosaveMs = 9000,
         autoAutosave = true,
         children,
     } = props;
+
+    const workspaceId = backend.info.id;
+
+    const live = liveProp ?? LIVE_OFF;
 
     const [authors, setAuthors] = React.useState<Loadable<readonly Author[]>>({
         data: initial?.authors ?? null,
@@ -264,9 +281,30 @@ export function WorkspaceProvider<
         updatedAt: initial?.templates ? Date.now() : undefined,
     });
 
-    const [snapshot, setSnapshot] = React.useState<SnapshotSlice<TData>>({
+    function toServiceMap(
+        input?: readonly DgpServiceCapability[] | DgpServiceMap | null,
+    ): DgpServiceMap | null {
+        if (!input) return null;
+        if (Array.isArray(input)) {
+            const map: DgpServiceMap = {} as any;
+            for (const s of input) map[s.id] = s;
+            return map;
+        }
+        return input as DgpServiceMap;
+    }
+
+    const initialServices = toServiceMap(
+        initial?.services ?? backend.services ?? null,
+    );
+    const [services, setServices] = React.useState<Loadable<DgpServiceMap>>({
+        data: initialServices,
+        loading: false,
+        updatedAt: initialServices ? Date.now() : undefined,
+    });
+
+    const [snapshot, setSnapshot] = React.useState<SnapshotSlice>({
         schemaVersion: initial?.snapshot?.schema_version,
-        data: initial?.snapshot?.data as TData | undefined,
+        data: initial?.snapshot?.data as EditorSnapshot | undefined,
         head: initial?.head,
         draft: initial?.draft,
         state: initial?.draft ? "uncommitted" : "clean",
@@ -369,6 +407,13 @@ export function WorkspaceProvider<
         ],
     );
 
+    const refreshServices = React.useCallback(async () => {
+        setServices((s) => ({ ...s, loading: true }));
+        const map = toServiceMap(backend.services ?? null);
+        if (map) setServices({ data: map, loading: false, updatedAt: now() });
+        else setServices((s) => ({ ...s, loading: false }));
+    }, [backend.services]);
+
     const refreshAll = React.useCallback(
         async (opts?: { strict?: boolean }) =>
             runTasks(
@@ -377,10 +422,17 @@ export function WorkspaceProvider<
                     () => refreshPermissions(),
                     () => refreshBranches(),
                     () => refreshTemplates(),
+                    () => refreshServices(),
                 ],
                 /* tolerant */ !(opts?.strict ?? false),
             ),
-        [refreshAuthors, refreshPermissions, refreshBranches, refreshTemplates],
+        [
+            refreshAuthors,
+            refreshPermissions,
+            refreshBranches,
+            refreshTemplates,
+            refreshServices,
+        ],
     );
 
     /* ---------------- snapshot ops ---------------- */
@@ -388,7 +440,7 @@ export function WorkspaceProvider<
     const loadSnapshot = React.useCallback(
         async (
             params?: Readonly<{ versionId?: string }>,
-        ): Result<SnapshotsLoadResult<TData>> => {
+        ): Result<SnapshotsLoadResult> => {
             const branchId = branches.currentId;
             if (!branchId)
                 return {
@@ -423,7 +475,7 @@ export function WorkspaceProvider<
     );
 
     const setSnapshotData = React.useCallback(
-        (updater: (curr: TData | undefined) => TData) => {
+        (updater: (curr: EditorSnapshot | undefined) => EditorSnapshot) => {
             setSnapshot((s) => ({
                 ...s,
                 data: updater(s.data),
@@ -605,6 +657,35 @@ export function WorkspaceProvider<
         snapshot.lastDraftAt,
     ]);
 
+    // Keep latest refresh functions in refs so the effect doesn't depend on their identities
+    const refreshBranchesRef = React.useRef(refreshBranches);
+    const refreshTemplatesRef = React.useRef(refreshTemplates);
+    const refreshSnapshotPointersRef = React.useRef(refreshSnapshotPointers);
+
+    React.useEffect(() => {
+        refreshBranchesRef.current = refreshBranches;
+    }, [refreshBranches]);
+    React.useEffect(() => {
+        refreshTemplatesRef.current = refreshTemplates;
+    }, [refreshTemplates]);
+    React.useEffect(() => {
+        refreshSnapshotPointersRef.current = refreshSnapshotPointers;
+    }, [refreshSnapshotPointers]);
+
+    // Stable primitives for the effect
+    const pollsMs: number =
+        live.mode === "poll" ? (live.intervalMs ?? 15000) : 0;
+    const liveKey: string = `${live.mode}:${pollsMs}`;
+    const workspaceKey: string = workspaceId; // if you prefer, include branch too
+
+    // Consider anything loaded as "data present"
+    const hasAnyData: boolean = Boolean(
+        (authors.data && authors.data.length) ||
+            (branches.data && branches.data.length) ||
+            (templates.data && templates.data.length) ||
+            snapshot.data?.props,
+    );
+
     /* ---------------- autosave effect ---------------- */
     React.useEffect(() => {
         if (!autoAutosave || !snapshot.dirty) return;
@@ -632,36 +713,55 @@ export function WorkspaceProvider<
     }>({ connected: false });
 
     React.useEffect(() => {
-        if (live.mode === "off") return;
+        // OFF → one-shot bootstrap if nothing is loaded yet
+        if (live.mode === "off") {
+            if (!hasAnyData) {
+                void (async () => {
+                    await runTasks(
+                        [
+                            () => refreshBranchesRef.current(),
+                            () => refreshTemplatesRef.current(),
+                            () => refreshSnapshotPointersRef.current(),
+                        ],
+                        true,
+                    );
+                })();
+            }
+            return; // no interval when off
+        }
 
-        let intervalId: number | null = null;
-        let stop = () => {};
-
+        // POLL → set up a stable interval; use refs for refresh functions
         if (live.mode === "poll") {
-            const iv = live.intervalMs ?? 15000;
             setLiveState((s) => ({ ...s, connected: true }));
+
             const tick = async () => {
                 await runTasks(
                     [
-                        () => refreshBranches(),
-                        () => refreshTemplates(),
-                        () => refreshSnapshotPointers(),
+                        () => refreshBranchesRef.current(),
+                        () => refreshTemplatesRef.current(),
+                        () => refreshSnapshotPointersRef.current(),
                     ],
                     true,
                 );
                 setLiveState({ connected: true, lastEventAt: Date.now() });
             };
-            intervalId = window.setInterval(tick, iv) as unknown as number;
+
+            const id = window.setInterval(tick, pollsMs) as unknown as number;
             void tick();
-            stop = () => {
-                if (intervalId !== null) window.clearInterval(intervalId);
+
+            return () => {
+                window.clearInterval(id);
                 setLiveState({ connected: false });
             };
         }
-        // Wire SSE/WS here if you emit WorkspaceEvent events.
 
-        return () => stop();
-    }, [live, refreshBranches, refreshTemplates, refreshSnapshotPointers]);
+        // Future: SSE/WS branch here
+    }, [
+        // Only stable deps here — do NOT include the refresh functions themselves
+        workspaceKey,
+        liveKey,
+        hasAnyData,
+    ]);
 
     /* ---------------- branch ops ---------------- */
 
@@ -673,7 +773,7 @@ export function WorkspaceProvider<
         [loadSnapshot],
     );
 
-    const createBranch = React.useCallback<WorkspaceAPI<TData>["createBranch"]>(
+    const createBranch = React.useCallback<WorkspaceAPI["createBranch"]>(
         async (name, opts) => {
             const res = await backend.branches.create(workspaceId, name, opts);
             if (res.ok) {
@@ -685,7 +785,7 @@ export function WorkspaceProvider<
         [backend.branches, workspaceId, refreshBranches, setCurrentBranch],
     );
 
-    const setMain = React.useCallback<WorkspaceAPI<TData>["setMain"]>(
+    const setMain = React.useCallback<WorkspaceAPI["setMain"]>(
         async (branchId) => {
             const res = await backend.branches.setMain(workspaceId, branchId);
             if (res.ok) await refreshBranches();
@@ -694,7 +794,7 @@ export function WorkspaceProvider<
         [backend.branches, workspaceId, refreshBranches],
     );
 
-    const mergeBranch = React.useCallback<WorkspaceAPI<TData>["mergeBranch"]>(
+    const mergeBranch = React.useCallback<WorkspaceAPI["mergeBranch"]>(
         async (sourceId, targetId) => {
             const res = await backend.branches.merge(
                 workspaceId,
@@ -716,7 +816,7 @@ export function WorkspaceProvider<
         ],
     );
 
-    const deleteBranch = React.useCallback<WorkspaceAPI<TData>["deleteBranch"]>(
+    const deleteBranch = React.useCallback<WorkspaceAPI["deleteBranch"]>(
         async (branchId) => {
             const res = await backend.branches.delete(workspaceId, branchId);
             if (res.ok) {
@@ -742,9 +842,7 @@ export function WorkspaceProvider<
 
     /* ---------------- template ops ---------------- */
 
-    const createTemplate = React.useCallback<
-        WorkspaceAPI<TData>["createTemplate"]
-    >(
+    const createTemplate = React.useCallback<WorkspaceAPI["createTemplate"]>(
         async (input) => {
             const res = await backend.templates.create(workspaceId, {
                 ...input,
@@ -759,9 +857,7 @@ export function WorkspaceProvider<
         [backend.templates, workspaceId, branches.currentId, refreshTemplates],
     );
 
-    const updateTemplate = React.useCallback<
-        WorkspaceAPI<TData>["updateTemplate"]
-    >(
+    const updateTemplate = React.useCallback<WorkspaceAPI["updateTemplate"]>(
         async (id, patch) => {
             const res = await backend.templates.update(id, patch);
             if (res.ok)
@@ -773,9 +869,7 @@ export function WorkspaceProvider<
         [backend.templates, branches.currentId, refreshTemplates],
     );
 
-    const cloneTemplate = React.useCallback<
-        WorkspaceAPI<TData>["cloneTemplate"]
-    >(
+    const cloneTemplate = React.useCallback<WorkspaceAPI["cloneTemplate"]>(
         async (source, opts) => {
             const res = await backend.templates.clone(
                 source,
@@ -790,9 +884,7 @@ export function WorkspaceProvider<
         [backend.templates, branches.currentId, refreshTemplates],
     );
 
-    const publishTemplate = React.useCallback<
-        WorkspaceAPI<TData>["publishTemplate"]
-    >(
+    const publishTemplate = React.useCallback<WorkspaceAPI["publishTemplate"]>(
         async (id) => {
             const res = await backend.templates.publish(id);
             if (res.ok)
@@ -805,7 +897,7 @@ export function WorkspaceProvider<
     );
 
     const unpublishTemplate = React.useCallback<
-        WorkspaceAPI<TData>["unpublishTemplate"]
+        WorkspaceAPI["unpublishTemplate"]
     >(
         async (id) => {
             const res = await backend.templates.unpublish(id);
@@ -818,9 +910,7 @@ export function WorkspaceProvider<
         [backend.templates, branches.currentId, refreshTemplates],
     );
 
-    const deleteTemplate = React.useCallback<
-        WorkspaceAPI<TData>["deleteTemplate"]
-    >(
+    const deleteTemplate = React.useCallback<WorkspaceAPI["deleteTemplate"]>(
         async (id) => {
             const res = await backend.templates.delete(id);
             if (res.ok)
@@ -832,20 +922,19 @@ export function WorkspaceProvider<
 
     /* ---------------- cache invalidation ---------------- */
 
-    const invalidate = React.useCallback<WorkspaceAPI<TData>["invalidate"]>(
-        (keys) => {
-            const setAll = !keys || keys.length === 0;
-            if (setAll || keys.includes("authors"))
-                setAuthors((s) => ({ ...s, updatedAt: undefined }));
-            if (setAll || keys.includes("permissions"))
-                setPermissions((s) => ({ ...s, updatedAt: undefined }));
-            if (setAll || keys.includes("branches"))
-                setBranches((s) => ({ ...s, updatedAt: undefined }));
-            if (setAll || keys.includes("templates"))
-                setTemplates((s) => ({ ...s, updatedAt: undefined }));
-        },
-        [],
-    );
+    const invalidate = React.useCallback<WorkspaceAPI["invalidate"]>((keys) => {
+        const setAll = !keys || keys.length === 0;
+        if (setAll || keys.includes("authors"))
+            setAuthors((s) => ({ ...s, updatedAt: undefined }));
+        if (setAll || keys.includes("permissions"))
+            setPermissions((s) => ({ ...s, updatedAt: undefined }));
+        if (setAll || keys.includes("branches"))
+            setBranches((s) => ({ ...s, updatedAt: undefined }));
+        if (setAll || keys.includes("templates"))
+            setTemplates((s) => ({ ...s, updatedAt: undefined }));
+        if (setAll || keys.includes("services"))
+            setServices((s) => ({ ...s, updatedAt: undefined }));
+    }, []);
 
     /* ---------------- initial load ---------------- */
     React.useEffect(() => {
@@ -856,20 +945,22 @@ export function WorkspaceProvider<
 
     /* ---------------- memo API ---------------- */
 
-    const api: WorkspaceAPI<TData> = React.useMemo(
+    const api: WorkspaceAPI = React.useMemo(
         () => ({
-            workspaceId,
+            info: backend.info,
             actor,
             authors,
             permissions,
             branches,
             templates,
+            services,
             refresh: {
                 all: refreshAll,
                 authors: refreshAuthors,
                 permissions: refreshPermissions,
                 branches: refreshBranches,
                 templates: refreshTemplates,
+                services: refreshServices,
             },
             setCurrentBranch,
             createBranch,
@@ -919,11 +1010,13 @@ export function WorkspaceProvider<
             permissions,
             branches,
             templates,
+            services,
             refreshAll,
             refreshAuthors,
             refreshPermissions,
             refreshBranches,
             refreshTemplates,
+            refreshServices,
             setCurrentBranch,
             createBranch,
             setMain,

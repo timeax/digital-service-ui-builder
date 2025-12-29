@@ -1,5 +1,5 @@
-import type {GraphSnapshot, GraphNode, GraphEdge, EdgeKind} from './graph';
-import {CommentMessage, CommentThread} from "../react/canvas/comments";
+import type { GraphSnapshot, GraphNode, GraphEdge, EdgeKind } from "./graph";
+import { CommentMessage, CommentThread } from "../react/canvas/comments";
 
 export type Viewport = { x: number; y: number; zoom: number };
 
@@ -20,27 +20,35 @@ export type CanvasState = {
 };
 
 export type CanvasEvents = {
-    'graph:update': GraphSnapshot;
-    'state:change': CanvasState;
-    'selection:change': { ids: string[] };
-    'viewport:change': Viewport;
-    'hover:change': { id?: string };
-    'wire:preview': { from: string; to?: string; kind: EdgeKind };
-    'wire:commit': { from: string; to: string; kind: EdgeKind };
-    'wire:cancel': { from: string };
-    'error': { message: string; code?: string; meta?: any };
-    'comment:thread:create': { thread: CommentThread };
-    'comment:thread:update': { thread: CommentThread };
-    'comment:thread:delete': { threadId: string };
-    'comment:message:create': { threadId: string; message: CommentMessage };
-    'comment:resolve': { thread: CommentThread; resolved: boolean };
-    'comment:move': { thread: CommentThread };
-    'comment:select': { threadId?: string };
-    'comment:sync': {
-        op: 'create_thread' | 'add_message' | 'edit_message' | 'delete_message' | 'move_thread' | 'resolve_thread' | 'delete_thread';
+    "graph:update": GraphSnapshot;
+    "state:change": CanvasState;
+    "selection:change": { ids: string[] };
+    "viewport:change": Viewport;
+    "hover:change": { id?: string };
+    "wire:preview": { from: string; to?: string; kind: EdgeKind };
+    "wire:commit": { from: string; to: string; kind: EdgeKind };
+    "wire:cancel": { from: string };
+    error: { message: string; code?: string; meta?: any };
+    "comment:thread:create": { thread: CommentThread };
+    "comment:thread:update": { thread: CommentThread };
+    "comment:thread:delete": { threadId: string };
+    "comment:message:create": { threadId: string; message: CommentMessage };
+    "comment:resolve": { thread: CommentThread; resolved: boolean };
+    "comment:move": { thread: CommentThread };
+    "comment:select": { threadId?: string };
+    "edge:change": EdgeKind;
+    "comment:sync": {
+        op:
+            | "create_thread"
+            | "add_message"
+            | "edit_message"
+            | "delete_message"
+            | "move_thread"
+            | "resolve_thread"
+            | "delete_thread";
         threadId: string;
         messageId?: string;
-        status: 'scheduled' | 'retrying' | 'succeeded' | 'failed' | 'cancelled';
+        status: "scheduled" | "retrying" | "succeeded" | "failed" | "cancelled";
         attempt: number;
         nextDelayMs?: number;
         error?: any;

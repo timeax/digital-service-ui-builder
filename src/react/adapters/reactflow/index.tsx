@@ -1,7 +1,7 @@
 // src/react/adapters/reactflow/index.tsx
 import React from "react";
-import { ReactFlowCanvas } from "./ReactFlowCanvas";
-import { useCanvasAPI } from "../../canvas/context";
+import { Canvas } from "@/components/canvas";
+import { useCanvasAPI } from "@/context/context";
 import type { AdapterOptions } from "./adapter";
 import type { ToolsConfig, LabelPlacement } from "./toolbar/types";
 
@@ -17,7 +17,7 @@ export type FlowCanvasProps = {
     labelPlacement?: LabelPlacement;
 
     /** Pass custom renderer for individual tool buttons */
-    renderTool?: React.ComponentProps<typeof ReactFlowCanvas>["renderTool"];
+    renderTool?: React.ComponentProps<typeof Canvas>["renderTool"];
 
     /** Initial layer toggles */
     initialShowGrid?: boolean;
@@ -34,13 +34,13 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
     labelPlacement = "tooltip",
     renderTool,
     initialShowGrid = true,
-    initialShowMiniMap = true,
+    initialShowMiniMap = false,
     options,
 }) => {
     const api = useCanvasAPI();
 
     return (
-        <ReactFlowCanvas
+        <Canvas
             api={api}
             tools={tools}
             showToolbar={showToolbar}
@@ -57,5 +57,5 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
 export default FlowCanvas;
 
 // Optional convenience re-exports
-export { ReactFlowCanvas };
+export { Canvas };
 export type { ToolsConfig, LabelPlacement, AdapterOptions };

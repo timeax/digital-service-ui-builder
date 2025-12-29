@@ -2,6 +2,12 @@
 // Transport-agnostic contracts for the Workspace layer.
 // Explicit types only (no implicit any). Result shape: { ok, value | error }.
 
+import type { EditorSnapshot } from "../../../schema/editor";
+import type {
+    DgpServiceCapability,
+    DgpServiceMap,
+} from "../../../schema/provider";
+
 /* ---------------- core result & identity ---------------- */
 
 export interface BackendError {
@@ -57,11 +63,9 @@ export interface MergeResult {
 
 /* ---------------- snapshots (editor state) ---------------- */
 
-export interface ServiceSnapshot<
-    TData extends object = Record<string, unknown>,
-> {
+export interface ServiceSnapshot {
     readonly schema_version: string;
-    readonly data: TData;
+    readonly data: EditorSnapshot;
     readonly meta?: Readonly<Record<string, unknown>>;
 }
 
@@ -84,29 +88,25 @@ export interface Commit {
     readonly createdAt: string;
 }
 
-export interface SnapshotsLoadResult<
-    TData extends object = Record<string, unknown>,
-> {
+export interface SnapshotsLoadResult {
     readonly head?: Commit;
     readonly draft?: Draft;
-    readonly snapshot: ServiceSnapshot<TData>;
+    readonly snapshot: ServiceSnapshot;
 }
 
-export interface SnapshotsBackend<
-    TData extends object = Record<string, unknown>,
-> {
+export interface SnapshotsBackend {
     load(
         params: Readonly<{
             workspaceId: string;
             branchId: string;
             versionId?: string;
         }>,
-    ): Result<SnapshotsLoadResult<TData>>;
+    ): Result<SnapshotsLoadResult>;
     autosave(
         params: Readonly<{
             workspaceId: string;
             branchId: string;
-            snapshot: ServiceSnapshot<TData>;
+            snapshot: ServiceSnapshot;
             clientId?: string;
             since?: number | string;
             etag?: string;
@@ -116,7 +116,7 @@ export interface SnapshotsBackend<
         params: Readonly<{
             workspaceId: string;
             branchId: string;
-            snapshot: ServiceSnapshot<TData>;
+            snapshot: ServiceSnapshot;
             message?: string;
             draftId?: string;
             etag?: string;
@@ -307,59 +307,21 @@ export interface BranchesBackend {
 
 /* ---------------- workspace backend root ---------------- */
 
-export interface WorkspaceBackend<
-    TData extends object = Record<string, unknown>,
-> {
+export interface WorkspaceInfo {
+    readonly id: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly createdAt: string;
+    readonly updatedAt: string;
+    readonly meta?: Readonly<Record<string, unknown>>;
+}
+
+export interface WorkspaceBackend {
+    readonly info: WorkspaceInfo;
     readonly authors: AuthorsBackend;
     readonly permissions: PermissionsBackend;
     readonly branches: BranchesBackend;
     readonly templates: TemplatesBackend;
-    readonly snapshots: SnapshotsBackend<TData>;
-
-    /**
-     * @deprecated Asset/file semantics have been replaced by templates.
-     * If present, this shim MAY forward to `templates` under the hood.
-     */
-    readonly assets?: AssetsBackendShim;
-}
-
-/* ---------------- DEPRECATED asset shim (compat only) ---------------- */
-
-/** @deprecated - use FieldTemplate instead. */
-export type Asset = FieldTemplate;
-
-/** @deprecated - legacy list params mapped to TemplatesListParams. */
-export interface AssetsListParamsShim {
-    readonly workspaceId: string;
-    readonly branchId?: string;
-    readonly q?: string;
-    readonly since?: string | number;
-}
-
-/** @deprecated - legacy upload params are not supported for templates. */
-export interface AssetsUploadParamsShim {
-    readonly workspaceId: string;
-    readonly branchId?: string;
-    readonly file: {
-        readonly name: string;
-        readonly size: number;
-        readonly mime?: string;
-        readonly type?: string;
-        readonly data: unknown;
-    };
-    readonly meta?: Readonly<Record<string, unknown>>;
-}
-
-/** @deprecated - minimal surface so old callers don’t crash. */
-export interface AssetsBackendShim {
-    list(params: AssetsListParamsShim): Result<readonly Asset[]>;
-    get(assetId: string): Result<Asset | null>;
-    rename(assetId: string, name: string): Result<Asset>;
-    move(assetId: string, to: Readonly<{ branchId?: string }>): Result<Asset>;
-    delete(assetId: string): Result<void>;
-    /** always returns ok("") or an error; templates do not have URLs */
-    url(assetId: string, kind?: "view" | "download" | "thumb"): Result<string>;
-    refresh(params: Omit<AssetsListParamsShim, "q">): Result<readonly Asset[]>;
-    /** always returns error; not supported for templates */
-    upload(params: AssetsUploadParamsShim): Result<Asset>;
+    readonly snapshots: SnapshotsBackend;
+    readonly services?: readonly DgpServiceCapability[] | DgpServiceMap;
 }

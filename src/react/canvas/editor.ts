@@ -7,12 +7,13 @@ import type {
     Command,
     EditorEvents,
     EditorOptions,
-    EditorSnapshot,
 } from "../../schema/editor.types";
 import { compilePolicies, PolicyDiagnostic } from "../../core/policy";
 import { DynamicRule, FallbackSettings } from "../../schema/validation";
 import { DgpServiceCapability, DgpServiceMap } from "../../schema/provider";
 import { constraintFitOk, rateOk, toFiniteNumber } from "../../utils/util";
+import { EditorSnapshot } from "../../schema/editor";
+import { Selection } from "./selection";
 
 const MAX_LIMIT = 100;
 type WireKind = "bind" | "include" | "exclude" | "service";
@@ -187,6 +188,130 @@ export class Editor {
         }
     }
 
+    /**
+     * Update the display label for a node and refresh the graph so node labels stay in sync.
+     * Supports: tag ("t:*"), field ("f:*"), option ("o:*").
+     * IDs are NOT changed; only the human-readable label.
+     */
+    reLabel(id: string, nextLabel: string): void {
+        const label = String(nextLabel ?? "").trim();
+
+        this.exec({
+            name: "reLabel",
+            do: () =>
+                this.patchProps((p) => {
+                    // Tag
+                    if (isTagId(id)) {
+                        const t = (p.filters ?? []).find((x) => x.id === id);
+                        if (!t) return;
+                        if ((t.label ?? "") === label) return;
+                        t.label = label;
+                        // graph nodes mirror builder, so rebuild
+                        this.api.refreshGraph();
+                        return;
+                    }
+
+                    // Option (find owner field → option)
+                    if (isOptionId(id)) {
+                        const own = ownerOfOption(p, id);
+                        if (!own) return;
+                        const f = (p.fields ?? []).find(
+                            (x) => x.id === own.fieldId,
+                        );
+                        const o = f?.options?.find((x) => x.id === id);
+                        if (!o) return;
+                        if ((o.label ?? "") === label) return;
+                        o.label = label;
+                        this.api.refreshGraph();
+                        return;
+                    }
+
+                    // Field (default)
+                    const fld = (p.fields ?? []).find((x) => x.id === id);
+                    if (!fld) return;
+                    if ((fld.label ?? "") === label) return;
+                    fld.label = label;
+                    this.api.refreshGraph();
+                }),
+            undo: () => this.api.undo(),
+        });
+    }
+
+    /**
+     * Assign or change a field's `name`. Only allowed when the field (and its options) have NO service mapping.
+     * - If `nextName` is empty/blank → removes the `name`.
+     * - Emits an error if the field or any of its options carry a `service_id`.
+     * - Emits an error if `nextName` collides with an existing field's name (case-sensitive).
+     */
+    setFieldName(fieldId: string, nextName: string | null | undefined): void {
+        const raw = typeof nextName === "string" ? nextName : "";
+        const name = raw.trim();
+
+        this.exec({
+            name: "setFieldName",
+            do: () =>
+                this.patchProps((p) => {
+                    const fields = p.fields ?? [];
+                    const f = fields.find((x) => x.id === fieldId);
+                    if (!f) {
+                        this.api.emit("error", {
+                            code: "field_not_found",
+                            message: `Field not found: ${fieldId}`,
+                            meta: { fieldId },
+                        });
+                        return;
+                    }
+
+                    // Disallow if the field itself maps to a service
+                    const fieldHasService =
+                        typeof (f as any).service_id === "number";
+
+                    // Disallow if any option maps to a service
+                    const optionHasService = Array.isArray(f.options)
+                        ? f.options.some(
+                              (o) => typeof (o as any).service_id === "number",
+                          )
+                        : false;
+
+                    if (fieldHasService || optionHasService) {
+                        this.api.emit("error", {
+                            code: "field_has_service_mapping",
+                            message:
+                                "Cannot set a name on a field that maps to a service (either the field or one of its options has a service_id).",
+                            meta: {
+                                fieldId,
+                                fieldHasService,
+                                optionHasService,
+                            },
+                        });
+                        return;
+                    }
+
+                    // If clearing, remove the key to keep payload lean
+                    if (name.length === 0) {
+                        if ("name" in f) delete (f as any).name;
+                        return;
+                    }
+
+                    // Prevent name collisions with other fields
+                    const collision = fields.find(
+                        (x) => x.id !== fieldId && (x.name ?? "") === name,
+                    );
+                    if (collision) {
+                        this.api.emit("error", {
+                            code: "field_name_collision",
+                            message: `Another field already uses the name "${name}".`,
+                            meta: { fieldId, otherFieldId: collision.id },
+                        });
+                        return;
+                    }
+
+                    // Assign
+                    (f as any).name = name;
+                }),
+            undo: () => this.api.undo(),
+        });
+    }
     getLastPolicyDiagnostics(): PolicyDiagnostic[] | undefined {
         return this._lastPolicyDiagnostics;
     }
@@ -1616,23 +1741,30 @@ export class Editor {
 
     private makeSnapshot(_why: string): EditorSnapshot {
         const props = cloneDeep(this.builder.getProps());
-        const s = this.api.snapshot();
+        const canvas = this.api.snapshot();
         return {
             props,
-            canvas: {
-                positions: cloneDeep(s.positions),
-                viewport: { ...s.viewport },
-                selection: new Set(s.selection),
+            layout: {
+                canvas,
             },
         };
     }
 
     private loadSnapshot(s: EditorSnapshot, reason: "undo" | "redo") {
         this.builder.load(cloneDeep(s.props));
-        if (s.canvas) {
-            this.api.setPositions(s.canvas.positions);
-            this.api.setViewport(s.canvas.viewport);
-            this.api.select(Array.from(s.canvas.selection ?? []));
+
+        const layout = s.layout;
+        const canvas = layout?.canvas;
+
+        if (canvas) {
+            if (canvas.positions) this.api.setPositions(canvas.positions);
+            if (canvas.viewport) this.api.setViewport(canvas.viewport);
+            if (canvas.selection)
+                this.api.select(
+                    Array.isArray(canvas.selection)
+                        ? canvas.selection
+                        : Array.from(canvas.selection),
+                );
         } else {
             this.api.refreshGraph();
         }
