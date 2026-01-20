@@ -1,4 +1,4 @@
-import type {InputRegistry, InputDescriptor, InputKind, InputVariant, InputAdapter} from './InputRegistry';
+import type {Registry, InputDescriptor, InputKind, InputVariant, InputAdapter} from './registry';
 
 const moduleCache = new Map<string, unknown>();
 
@@ -21,7 +21,7 @@ export type RegisterCustomOptions = {
  * Call this client-side (e.g., inside useEffect) to avoid SSR pitfalls.
  */
 export async function registerCustomFromUrl(
-    registry: InputRegistry,
+    registry: Registry,
     opts: RegisterCustomOptions
 ): Promise<void> {
     const {url, kind, variant, exportName = 'default', adapter, defaultProps} = opts;

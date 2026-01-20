@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "entries": {
+    "src/react/workspace/context/provider/runtime/use-backend-runtime.ts": {
+      "path": "src/react/workspace/context/provider/runtime/use-backend-runtime.ts",
+      "createdAt": "2026-01-20T15:00:01.897Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-authors-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-authors-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.907Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-permissions-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-permissions-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.910Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-branches-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-branches-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.913Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-templates-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-templates-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.916Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-services-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-services-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.921Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/slices/use-snapshots-slice.ts": {
+      "path": "src/react/workspace/context/provider/slices/use-snapshots-slice.ts",
+      "createdAt": "2026-01-20T15:00:01.925Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/compose/use-workspace-refresh.ts": {
+      "path": "src/react/workspace/context/provider/compose/use-workspace-refresh.ts",
+      "createdAt": "2026-01-20T15:00:01.930Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/compose/use-live-polling.ts": {
+      "path": "src/react/workspace/context/provider/compose/use-live-polling.ts",
+      "createdAt": "2026-01-20T15:00:01.933Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/compose/use-branch-cache.ts": {
+      "path": "src/react/workspace/context/provider/compose/use-branch-cache.ts",
+      "createdAt": "2026-01-20T15:00:01.941Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/live/types.ts": {
+      "path": "src/react/workspace/context/provider/live/types.ts",
+      "createdAt": "2026-01-20T23:24:37.606Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/live/adapters/poll.ts": {
+      "path": "src/react/workspace/context/provider/live/adapters/poll.ts",
+      "createdAt": "2026-01-20T23:24:37.610Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/live/adapters/manual.ts": {
+      "path": "src/react/workspace/context/provider/live/adapters/manual.ts",
+      "createdAt": "2026-01-20T23:24:37.612Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/live/adapters/ws.ts": {
+      "path": "src/react/workspace/context/provider/live/adapters/ws.ts",
+      "createdAt": "2026-01-20T23:24:37.613Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/react/workspace/context/provider/live/adapters/sse.ts": {
+      "path": "src/react/workspace/context/provider/live/adapters/sse.ts",
+      "createdAt": "2026-01-20T23:24:37.615Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    }
+  }
+}

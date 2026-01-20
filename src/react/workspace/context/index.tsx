@@ -1,3 +1,4 @@
+//@ts-nocheck
 // src/react/workspace/context/index.tsx
 // React provider/hook for Workspace data with Field Templates (replaces "assets").
 // Includes authors, permissions, branches, templates, and snapshots (autosave drafts).

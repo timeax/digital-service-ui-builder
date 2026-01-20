@@ -1,0 +1,38 @@
+src/
+  react/
+    workspace/
+      context/
+        index.tsx                      # original (fallback) provider impl (left as-is for now)
+        backend.ts                     # backend contracts
+        context.tsx                    # CanvasProvider currently imports workspace from "."
+        ctxmenu.tsx
+        memory-backend.ts
+        provider/
+          provider.tsx                 # will be refactored into thin composition root
+          context.ts                   # WorkspaceContext + hooks (useWorkspace/useWorkspaceMaybe)
+          helpers.ts                   # shared helpers (may shrink / be partially moved)
+          types.ts                     # shared types (may shrink as slices own their types)
+
+          # NEW (for the hook-slice refactor)
+          runtime/
+            use-backend-runtime.ts     # call/runTasks/toBackendError/live + small utilities
+
+          slices/
+            use-authors-slice.ts       # authors state + load/refresh
+            use-permissions-slice.ts   # permissions state + load/refresh
+            use-branches-slice.ts      # branches state + setCurrentBranch + load/refresh
+            use-templates-slice.ts     # templates (branch-scoped) state + load/refresh
+            use-services-slice.ts      # services state + load/refresh
+            use-snapshots-slice.ts     # snapshots (branch-scoped) state + load/save/autosave/publish/discard/refresh pointers
+
+          compose/
+            use-workspace-refresh.ts   # refreshAll + refreshBranchContext orchestration
+            use-live-polling.ts        # live-mode polling loop wrapper (optional)
+            use-branch-cache.ts        # branch cache helper (optional)
+          live/
+            types.ts                         # Live adapter contracts + context types
+            adapters/
+              poll.ts                        # current polling logic, extracted cleanly
+              manual.ts                      # (optional) dev/test adapter
+              ws.ts                          # (optional stub) host can implement too
+              sse.ts

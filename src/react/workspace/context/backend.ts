@@ -2,11 +2,8 @@
 // Transport-agnostic contracts for the Workspace layer.
 // Explicit types only (no implicit any). Result shape: { ok, value | error }.
 
-import type { EditorSnapshot } from "../../../schema/editor";
-import type {
-    DgpServiceCapability,
-    DgpServiceMap,
-} from "../../../schema/provider";
+import type { EditorSnapshot } from "@/schema/editor";
+import type { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
 
 /* ---------------- core result & identity ---------------- */
 
@@ -61,6 +58,51 @@ export interface MergeResult {
     readonly message?: string;
 }
 
+/* ---------------- services ---------------- */
+
+export type ServicesInput = readonly DgpServiceCapability[] | DgpServiceMap;
+
+export interface ServicesBackend {
+    get(workspaceId: string): Result<ServicesInput>;
+    refresh(
+        workspaceId: string,
+        params?: Readonly<{ since?: number | string }>,
+    ): Result<ServicesInput>;
+}
+
+/* ---------------- branch access / participants ---------------- */
+
+export interface BranchParticipant {
+    readonly id: string;
+    readonly workspaceId: string;
+    readonly branchId: string;
+
+    /** points into Authors directory */
+    readonly authorId: string;
+
+    /** roles are intentionally loose; host decides taxonomy */
+    readonly roles?: readonly string[];
+
+    readonly canRead: boolean;
+    readonly canWrite: boolean;
+
+    readonly meta?: Readonly<Record<string, unknown>>;
+    readonly createdAt?: string;
+    readonly updatedAt?: string;
+}
+
+export interface BranchAccessBackend {
+    listParticipants(
+        workspaceId: string,
+        branchId: string,
+    ): Result<readonly BranchParticipant[]>;
+    refreshParticipants(
+        workspaceId: string,
+        branchId: string,
+        params?: Readonly<{ since?: number | string }>,
+    ): Result<readonly BranchParticipant[]>;
+}
+
 /* ---------------- snapshots (editor state) ---------------- */
 
 export interface ServiceSnapshot {
@@ -99,6 +141,7 @@ export interface SnapshotsBackend {
         params: Readonly<{
             workspaceId: string;
             branchId: string;
+            actorId: string;
             versionId?: string;
         }>,
     ): Result<SnapshotsLoadResult>;
@@ -106,6 +149,7 @@ export interface SnapshotsBackend {
         params: Readonly<{
             workspaceId: string;
             branchId: string;
+            actorId: string;
             snapshot: ServiceSnapshot;
             clientId?: string;
             since?: number | string;
@@ -116,6 +160,7 @@ export interface SnapshotsBackend {
         params: Readonly<{
             workspaceId: string;
             branchId: string;
+            actorId: string;
             snapshot: ServiceSnapshot;
             message?: string;
             draftId?: string;
@@ -125,17 +170,23 @@ export interface SnapshotsBackend {
     publish(
         params: Readonly<{
             workspaceId: string;
+            actorId: string;
             draftId: string;
             message?: string;
         }>,
     ): Result<Readonly<{ commit: Commit }>>;
     discard(
-        params: Readonly<{ workspaceId: string; draftId: string }>,
+        params: Readonly<{
+            workspaceId: string;
+            actorId: string;
+            draftId: string;
+        }>,
     ): Result<void>;
     refresh(
         params: Readonly<{
             workspaceId: string;
             branchId: string;
+            actorId: string;
             since?: number | string;
         }>,
     ): Result<Readonly<{ head?: Commit; draft?: Draft }>>;
@@ -252,11 +303,17 @@ export interface TemplatesBackend {
     ): Result<readonly FieldTemplate[]>;
 }
 
-/* ---------------- live channel (unchanged) ---------------- */
+/* ---------------- live channel ---------------- */
 
 export type WorkspaceEvent =
     | { type: "authors.updated"; since?: number | string }
     | { type: "permissions.updated" }
+    | { type: "services.updated"; since?: number | string }
+    | {
+          type: "branch.participants.updated";
+          branchId: string;
+          since?: number | string;
+      }
     | { type: "branch.created"; branch: Branch }
     | { type: "branch.deleted"; branchId: string }
     | { type: "branch.setMain"; branchId: string }
@@ -318,10 +375,17 @@ export interface WorkspaceInfo {
 
 export interface WorkspaceBackend {
     readonly info: WorkspaceInfo;
+
     readonly authors: AuthorsBackend;
     readonly permissions: PermissionsBackend;
     readonly branches: BranchesBackend;
+
+    /** branch-scoped access control / participants */
+    readonly access: BranchAccessBackend;
+
+    /** first-class services channel */
+    readonly services: ServicesBackend;
+
     readonly templates: TemplatesBackend;
     readonly snapshots: SnapshotsBackend;
-    readonly services?: readonly DgpServiceCapability[] | DgpServiceMap;
 }

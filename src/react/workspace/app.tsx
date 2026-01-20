@@ -1,13 +1,8 @@
 // src/react/workspace/app.tsx
 import * as React from "react";
-
-import { WorkspaceLayout } from "@/layout/workspace-layout";
-import { LeftPanelProvider } from "@/layout/left-panel-context";
-import { BottomBarProvider } from "@/layout/bottom-bar-context";
-import { WorkspaceProvider } from "./context";
-import type { WorkspaceProviderProps } from "./context";
+import { WorkspaceProvider } from "./context/provider";
+import type { WorkspaceProviderProps } from "./context/provider";
 import type { Actor, WorkspaceBackend } from "./context/backend";
-import { LeftPanel } from "@/panels/left-panel";
 import FlowCanvas, { type ToolsConfig } from "../adapters/reactflow";
 import { CanvasProvider } from "@/context/context";
 
@@ -33,6 +28,7 @@ export interface WorkspaceProps {
     /** Auto-run autosave when dirty (default true) */
     readonly autoAutosave?: WorkspaceProviderProps["autoAutosave"];
     readonly tools?: ToolsConfig;
+    children: (tools?: ToolsConfig) => React.ReactNode;
 }
 
 /**
@@ -49,6 +45,7 @@ export function Workspace(props: WorkspaceProps): React.JSX.Element {
         autosaveMs,
         autoAutosave,
         tools,
+        children,
     } = props;
 
     return (
@@ -61,18 +58,7 @@ export function Workspace(props: WorkspaceProps): React.JSX.Element {
             autosaveMs={autosaveMs}
             autoAutosave={autoAutosave}
         >
-            <CanvasProvider>
-                <BottomBarProvider>
-                    <LeftPanelProvider>
-                        <WorkspaceLayout>
-                            <LeftPanel />
-                            <FlowCanvas tools={tools ?? {}} showToolbar />
-                            <div>Workspace Right</div>
-                            <div>Workspace Bottom</div>
-                        </WorkspaceLayout>
-                    </LeftPanelProvider>
-                </BottomBarProvider>
-            </CanvasProvider>
+            <CanvasProvider>{children(tools)}</CanvasProvider>
         </WorkspaceProvider>
     );
 }

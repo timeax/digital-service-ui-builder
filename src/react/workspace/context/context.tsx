@@ -6,11 +6,11 @@ import React, {
     useRef,
     type ReactNode,
 } from "react";
-import { CanvasAPI } from "../../canvas/api";
-import { Builder, BuilderOptions, createBuilder } from "../../../core";
-import type { CanvasOptions } from "../../../schema/canvas-types";
+import { CanvasAPI } from "@/react";
+import { Builder, BuilderOptions, createBuilder } from "@/core";
+import type { CanvasOptions } from "@/schema/canvas-types";
 import type { CanvasBackendOptions } from "../../canvas/backend";
-import type { ServiceProps } from "../../../schema";
+import type { ServiceProps } from "@/schema";
 import { useWorkspaceMaybe } from ".";
 
 /* ───────────────────────── context ───────────────────────── */

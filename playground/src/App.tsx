@@ -3,7 +3,10 @@ import React from "react";
 import "reactflow/dist/style.css";
 import "@/styles/global.css";
 
-import { Workspace, createMemoryWorkspaceBackend } from "digital-service-ui-builder/workspace";
+import {
+    Workspace,
+    createMemoryWorkspaceBackend,
+} from "digital-service-ui-builder/workspace";
 import type { EditorSnapshot } from "digital-service-ui-builder/schema/editor";
 import { initialProps, serviceMap } from "./data";
 
@@ -48,6 +51,9 @@ export default function App(): JSX.Element {
             live={{ mode: "poll", intervalMs: 15_000 }}
             autosaveMs={9_000}
             autoAutosave
+            children={(tools) => {
+                return <>tools</>;
+            }}
         />
     );
 }

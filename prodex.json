@@ -16,5 +16,37 @@
             "@hooks": "resources/js/hooks",
             "@data": "resources/js/data"
         }
+    },
+    "shortcuts": {
+        "schema": {
+            "include": ["src/schema/**"]
+        },
+        "core": {
+            "include": ["src/core/**"]
+        },
+        "react-adapters": {
+            "include": ["src/react/adapters/**"]
+        },
+        "react-canvas": {
+            "include": ["src/react/canvas/**"]
+        },
+        "react-hooks": {
+            "include": ["src/react/hooks/**"]
+        },
+        "react-inputs": {
+            "include": ["src/react/inputs/**"]
+        },
+        "react-workspace": {
+            "include": ["src/react/workspace/**"]
+        },
+        "react": {
+            "include": ["src/react/index.ts"]
+        },
+        "utils": {
+            "include": ["src/utils/**"]
+        },
+        "json-schema": {
+            "include": ["schema/**"]
+        }
     }
 }

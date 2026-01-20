@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import React from 'react';
-import {createInputRegistry, resolveInputDescriptor} from '../InputRegistry';
-import type {InputDescriptor} from '../InputRegistry';
+import {createInputRegistry, resolveInputDescriptor} from '../registry';
+import type {InputDescriptor} from '../registry';
 
 function StubA(_: Record<string, unknown>) { return React.createElement('div'); }
 function StubB(_: Record<string, unknown>) { return React.createElement('div'); }
