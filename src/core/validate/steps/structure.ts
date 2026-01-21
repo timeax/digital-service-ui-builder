@@ -1,5 +1,6 @@
 // src/core/validate/steps/structure.ts
 import type { ValidationCtx } from "../shared";
+import { withAffected } from "../shared";
 import { isFiniteNumber } from "../shared";
 
 export function validateStructure(v: ValidationCtx): void {
@@ -8,7 +9,11 @@ export function validateStructure(v: ValidationCtx): void {
 
     // root present
     if (!tags.some((t) => t.id === "root")) {
-        v.errors.push({ code: "root_missing" });
+        v.errors.push({
+            code: "root_missing",
+            severity: "error",
+            message: 'Missing required root tag with id "root".',
+        });
     }
 
     // cycles in tag parentage
@@ -32,7 +37,13 @@ export function validateStructure(v: ValidationCtx): void {
 
     for (const t of tags) {
         if (hasCycleFrom(t.id)) {
-            v.errors.push({ code: "cycle_in_tags", nodeId: t.id });
+            v.errors.push({
+                code: "cycle_in_tags",
+                severity: "error",
+                message: `Cycle detected in tag parentage starting at tag "${t.id}".`,
+                nodeId: t.id,
+                details: { tagId: t.id },
+            });
             break;
         }
     }
@@ -42,8 +53,10 @@ export function validateStructure(v: ValidationCtx): void {
         if (t.bind_id && !v.tagById.has(t.bind_id)) {
             v.errors.push({
                 code: "bad_bind_reference",
+                severity: "error",
+                message: `Tag "${t.id}" binds to missing parent tag "${t.bind_id}".`,
                 nodeId: t.id,
-                details: { ref: t.bind_id },
+                details: withAffected({ ref: t.bind_id }, [t.id]),
             });
         }
     }
@@ -57,8 +70,10 @@ export function validateStructure(v: ValidationCtx): void {
                 if (!v.tagById.has(id)) {
                     v.errors.push({
                         code: "bad_bind_reference",
+                        severity: "error",
+                        message: `Field "${f.id}" binds to missing tag "${id}".`,
                         nodeId: f.id,
-                        details: { ref: id },
+                        details: withAffected({ ref: id }, [f.id]),
                     });
                 }
             }
@@ -66,8 +81,10 @@ export function validateStructure(v: ValidationCtx): void {
             if (!v.tagById.has(b)) {
                 v.errors.push({
                     code: "bad_bind_reference",
+                    severity: "error",
+                    message: `Field "${f.id}" binds to missing tag "${b}".`,
                     nodeId: f.id,
-                    details: { ref: b },
+                    details: withAffected({ ref: b }, [f.id]),
                 });
             }
         }

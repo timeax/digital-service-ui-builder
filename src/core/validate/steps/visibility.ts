@@ -1,7 +1,7 @@
 // src/core/validate/steps/visibility.ts
 import type { Field } from "@/schema";
 import type { ValidationCtx } from "../shared";
-import { isBoundTo, isFiniteNumber } from "../shared";
+import { isBoundTo, isFiniteNumber, withAffected } from "../shared";
 
 export function createFieldsVisibleUnder(
     v: ValidationCtx,
@@ -50,10 +50,17 @@ export function validateVisibility(v: ValidationCtx): void {
             if (!label) continue;
 
             if (seen.has(label)) {
+                const otherId: string | undefined = seen.get(label);
+
                 v.errors.push({
                     code: "duplicate_visible_label",
+                    severity: "error",
+                    message: `Duplicate visible label "${label}" under tag "${t.id}".`,
                     nodeId: f.id,
-                    details: { tagId: t.id, other: seen.get(label) },
+                    details: withAffected(
+                        { tagId: t.id, other: otherId, label },
+                        otherId ? [t.id, f.id, otherId] : [t.id, f.id],
+                    ),
                 });
             } else {
                 seen.set(label, f.id);
@@ -74,8 +81,13 @@ export function validateVisibility(v: ValidationCtx): void {
         if (markers.length > 1) {
             v.errors.push({
                 code: "quantity_multiple_markers",
+                severity: "error",
+                message: `Multiple quantity markers found under tag "${t.id}". Only one is allowed per visible group.`,
                 nodeId: t.id,
-                details: { tagId: t.id, markers },
+                details: withAffected({ tagId: t.id, markers }, [
+                    t.id,
+                    ...markers,
+                ]),
             });
         }
     }
@@ -104,8 +116,13 @@ export function validateVisibility(v: ValidationCtx): void {
         if (hasUtility && !hasBase) {
             v.errors.push({
                 code: "utility_without_base",
+                severity: "error",
+                message: `Utility-priced options exist under tag "${t.id}" but no base-priced options were found in the same visible group.`,
                 nodeId: t.id,
-                details: { utilityOptionIds },
+                details: withAffected({ tagId: t.id, utilityOptionIds }, [
+                    t.id,
+                    ...utilityOptionIds,
+                ]),
             });
         }
     }

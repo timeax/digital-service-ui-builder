@@ -1,6 +1,6 @@
 // src/core/validate/steps/utility.ts
 import type { ValidationCtx } from "../shared";
-import { isFiniteNumber } from "../shared";
+import { isFiniteNumber, withAffected } from "../shared";
 
 export function validateUtilityMarkers(v: ValidationCtx): void {
     const ALLOWED_UTILITY_MODES: Set<string> = new Set<string>([
@@ -21,12 +21,17 @@ export function validateUtilityMarkers(v: ValidationCtx): void {
             if (role === "utility" && hasService) {
                 v.errors.push({
                     code: "utility_with_service_id",
+                    severity: "error",
+                    message: `Utility-priced option "${o.id}" (field "${f.id}") must not reference a service_id.`,
                     nodeId: o.id,
-                    details: {
-                        fieldId: f.id,
-                        optionId: o.id,
-                        service_id: o.service_id,
-                    },
+                    details: withAffected(
+                        {
+                            fieldId: f.id,
+                            optionId: o.id,
+                            service_id: o.service_id,
+                        },
+                        [f.id, o.id],
+                    ),
                 });
             }
 
@@ -37,16 +42,28 @@ export function validateUtilityMarkers(v: ValidationCtx): void {
                 if (!isFiniteNumber(rate)) {
                     v.errors.push({
                         code: "utility_missing_rate",
+                        severity: "error",
+                        message: `Utility definition for option "${o.id}" (field "${f.id}") is missing a valid rate.`,
                         nodeId: o.id,
-                        details: { fieldId: f.id, optionId: o.id },
+                        details: withAffected(
+                            { fieldId: f.id, optionId: o.id },
+                            [f.id, o.id],
+                        ),
                     });
                 }
 
                 if (!ALLOWED_UTILITY_MODES.has(String(mode))) {
                     v.errors.push({
                         code: "utility_invalid_mode",
+                        severity: "error",
+                        message: `Utility definition for option "${o.id}" (field "${f.id}") has invalid mode "${String(
+                            mode,
+                        )}".`,
                         nodeId: o.id,
-                        details: { fieldId: f.id, optionId: o.id, mode },
+                        details: withAffected(
+                            { fieldId: f.id, optionId: o.id, mode },
+                            [f.id, o.id],
+                        ),
                     });
                 }
             }
@@ -64,16 +81,22 @@ export function validateUtilityMarkers(v: ValidationCtx): void {
         if (!isFiniteNumber(rate)) {
             v.errors.push({
                 code: "utility_missing_rate",
+                severity: "error",
+                message: `Utility definition for field "${f.id}" is missing a valid rate.`,
                 nodeId: f.id,
-                details: { fieldId: f.id },
+                details: withAffected({ fieldId: f.id }, [f.id]),
             });
         }
 
         if (!ALLOWED_UTILITY_MODES.has(String(mode))) {
             v.errors.push({
                 code: "utility_invalid_mode",
+                severity: "error",
+                message: `Utility definition for field "${f.id}" has invalid mode "${String(
+                    mode,
+                )}".`,
                 nodeId: f.id,
-                details: { fieldId: f.id, mode },
+                details: withAffected({ fieldId: f.id, mode }, [f.id]),
             });
         }
     }

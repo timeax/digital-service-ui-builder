@@ -25,6 +25,9 @@ export function validateGlobalUtilityGuard(v: ValidationCtx): void {
     if (hasUtility && !hasBase) {
         v.errors.push({
             code: "utility_without_base",
+            severity: "warning",
+            message:
+                "Global utility guard: utility-priced options exist but no base-priced options were found.",
             nodeId: "global",
             details: { scope: "global" },
         });

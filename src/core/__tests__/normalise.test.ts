@@ -101,7 +101,7 @@ describe("normalise()", () => {
                 { id: "t2", label: "T2" },
             ],
             fields: [
-                { id: "f_single", label: "A", type: "text", bind: "t1" },
+                { id: "f_single", label: "A", type: "text", bind_id: "t1" },
                 {
                     id: "f_multi",
                     label: "B",
@@ -230,7 +230,7 @@ describe("normalise()", () => {
         };
 
         const out = normalise(input);
-        const root = out.filters[0];
+        const root = out.filters[1];
         expect(root.includes).toEqual(["a", "b"]);
         expect(root.excludes).toEqual(["x", "y"]);
     });

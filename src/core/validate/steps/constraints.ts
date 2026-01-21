@@ -1,6 +1,10 @@
 // src/core/validate/steps/constraints.ts
 import type { ValidationCtx } from "../shared";
-import { isFiniteNumber, isServiceFlagEnabled } from "../shared";
+import {
+    isFiniteNumber,
+    isServiceFlagEnabled,
+    withAffected, // <-- your helper (adjust name/import if you named it differently)
+} from "../shared";
 
 type ConstraintBag = Record<string, boolean | undefined>;
 
@@ -80,8 +84,18 @@ export function validateConstraints(v: ValidationCtx): void {
                     if (val === true && !isServiceFlagEnabled(svc as any, k)) {
                         v.errors.push({
                             code: "unsupported_constraint",
+                            severity: "error",
+                            message: `Service option "${o.id}" under tag "${t.id}" does not support required constraint "${k}".`,
                             nodeId: t.id,
-                            details: { flag: k, serviceId: o.service_id },
+                            details: withAffected(
+                                {
+                                    flag: k,
+                                    serviceId: o.service_id,
+                                    fieldId: f.id,
+                                    optionId: o.id,
+                                },
+                                [t.id, f.id, o.id],
+                            ),
                         });
                     }
                 }
@@ -103,6 +117,10 @@ export function validateConstraints(v: ValidationCtx): void {
             if (val === true && !isServiceFlagEnabled(svc as any, k)) {
                 v.errors.push({
                     code: "unsupported_constraint",
+                    severity: "error",
+                    message: `Tag "${t.id}" maps to service "${String(
+                        sid,
+                    )}" which does not support required constraint "${k}".`,
                     nodeId: t.id,
                     details: { flag: k, serviceId: sid },
                 });
@@ -119,15 +137,24 @@ export function validateConstraints(v: ValidationCtx): void {
             const row: any = (ov as any)[k];
             if (!row) continue;
 
-            const from: boolean = !!row.from;
-            const to: boolean = !!row.to;
+            const from: boolean = row.from === true;
+            const to: boolean = row.to === true;
             const origin: string = String(row.origin ?? "");
 
             v.errors.push({
                 code: "constraint_overridden",
+                severity: "warning",
+                message: origin
+                    ? `Constraint "${k}" on tag "${t.id}" was overridden by ancestor "${origin}" (${String(from)} → ${String(
+                          to,
+                      )}).`
+                    : `Constraint "${k}" on tag "${t.id}" was overridden by an ancestor (${String(from)} → ${String(to)}).`,
                 nodeId: t.id,
-                details: { flag: k, from, to, origin, severity: "warning" },
-            } as any);
+                details: withAffected(
+                    { flag: k, from, to, origin },
+                    origin ? [t.id, origin] : undefined,
+                ),
+            });
         }
     }
 }

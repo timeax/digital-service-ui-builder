@@ -1,5 +1,6 @@
 // src/core/validate/steps/unbound.ts
 import type { ValidationCtx } from "../shared";
+import { withAffected } from "../shared";
 
 export function validateUnboundFields(v: ValidationCtx): void {
     const boundFieldIds: Set<string> = new Set<string>();
@@ -24,7 +25,22 @@ export function validateUnboundFields(v: ValidationCtx): void {
             !includedByTag.has(f.id) &&
             !includedByOption.has(f.id)
         ) {
-            v.errors.push({ code: "field_unbound", nodeId: f.id });
+            v.errors.push({
+                code: "field_unbound",
+                severity: "error",
+                message: `Field "${f.id}" is unbound: it is not bound to any tag and not included by tags or option maps.`,
+                nodeId: f.id,
+                details: withAffected(
+                    {
+                        fieldId: f.id,
+                        bound: false,
+                        // exposing these helps editors explain "why"
+                        includedByTag: includedByTag.has(f.id),
+                        includedByOption: includedByOption.has(f.id),
+                    },
+                    [f.id],
+                ),
+            });
         }
     }
 }

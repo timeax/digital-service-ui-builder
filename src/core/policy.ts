@@ -171,6 +171,7 @@ export function compilePolicies(raw: unknown): {
     raw.forEach((entry, i) => {
         const d: PolicyDiagnostic[] = [];
         const src = entry && typeof entry === "object" ? (entry as any) : {};
+
         let id: string | undefined =
             typeof src.id === "string" && src.id.trim()
                 ? src.id.trim()
@@ -185,6 +186,22 @@ export function compilePolicies(raw: unknown): {
                 severity: "warning",
                 message: 'Missing "id"; generated automatically.',
                 path: "id",
+            });
+        }
+
+        // ✅ label: required by DynamicRule; default to id
+        const label: string =
+            typeof src.label === "string" && src.label.trim()
+                ? src.label.trim()
+                : id;
+
+        if (!(typeof src.label === "string" && src.label.trim())) {
+            d.push({
+                ruleIndex: i,
+                ruleId: id,
+                severity: "warning",
+                message: 'Missing "label"; defaulted to rule id.',
+                path: "label",
             });
         }
 
@@ -344,6 +361,7 @@ export function compilePolicies(raw: unknown): {
         if (!hasFatal) {
             const rule: DynamicRule = {
                 id,
+                label, // ✅ now always present
                 scope,
                 subject,
                 filter,

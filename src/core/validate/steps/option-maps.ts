@@ -1,5 +1,6 @@
 // src/core/validate/steps/option-maps.ts
 import type { ValidationCtx } from "../shared";
+import { withAffected } from "../shared";
 
 type ParsedKey = { fieldId: string; optionId: string };
 
@@ -21,17 +22,30 @@ export function validateOptionMaps(v: ValidationCtx): void {
         return !!(f.options ?? []).find((o) => o.id === oid);
     };
 
+    const badKeyMessage = (key: string): string =>
+        `Invalid option-map key "${key}". Expected "fieldId::optionId" pointing to an existing option.`;
+
     // bad_option_key
     for (const k of Object.keys(incMap)) {
         const p = parseKey(k);
         if (!p || !hasOption(p.fieldId, p.optionId)) {
-            v.errors.push({ code: "bad_option_key", details: { key: k } });
+            v.errors.push({
+                code: "bad_option_key",
+                severity: "error",
+                message: badKeyMessage(k),
+                details: { key: k },
+            });
         }
     }
     for (const k of Object.keys(excMap)) {
         const p = parseKey(k);
         if (!p || !hasOption(p.fieldId, p.optionId)) {
-            v.errors.push({ code: "bad_option_key", details: { key: k } });
+            v.errors.push({
+                code: "bad_option_key",
+                severity: "error",
+                message: badKeyMessage(k),
+                details: { key: k },
+            });
         }
     }
 
@@ -39,10 +53,16 @@ export function validateOptionMaps(v: ValidationCtx): void {
     for (const k of Object.keys(incMap)) {
         if (k in excMap) {
             const p = parseKey(k);
+            const affected: string[] | undefined = p
+                ? [p.fieldId, p.optionId]
+                : undefined;
+
             v.errors.push({
                 code: "option_include_exclude_conflict",
+                severity: "error",
+                message: `Option-map key "${k}" appears in both includes_for_buttons and excludes_for_buttons.`,
                 nodeId: p?.fieldId,
-                details: { key: k },
+                details: withAffected({ key: k }, affected),
             });
         }
     }

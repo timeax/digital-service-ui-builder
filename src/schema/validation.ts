@@ -46,6 +46,8 @@ export type ValidationCode =
 
 export type ValidationError = {
     code: ValidationCode;
+    message: string;
+    severity: "error" | "warning" | "info";
     nodeId?: string; // tag/field/option id
     details?: Record<string, unknown> & {
         affectedIds?: string[];
@@ -75,6 +77,7 @@ export type ServiceWhereClause = {
 
 export type DynamicRule = {
     id: string;
+    label: string;
     scope: "global" | "visible_group";
     subject: "services";
 

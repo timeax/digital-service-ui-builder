@@ -99,3 +99,12 @@ export function isServiceFlagEnabled(
 ): boolean {
     return serviceFlagState(svc, flagId) === true;
 }
+
+// src/core/validate/error.ts
+export function withAffected(
+    details: Record<string, unknown> | undefined,
+    ids: string[] | undefined,
+): Record<string, unknown> | undefined {
+    if (!ids || ids.length <= 1) return details;
+    return { ...(details ?? {}), affectedIds: ids };
+}
