@@ -77,7 +77,7 @@ export type ServiceWhereClause = {
 
 export type DynamicRule = {
     id: string;
-    label: string;
+    label?: string;
     scope: "global" | "visible_group";
     subject: "services";
 

@@ -1,4 +1,5 @@
 // src/react/workspace/context/backend/memory/store.ts
+
 import type {
     Author,
     Branch,
@@ -6,7 +7,6 @@ import type {
     Commit,
     Draft,
     FieldTemplate,
-    MergeResult,
     PermissionsMap,
     ServiceSnapshot,
     ServicesInput,
@@ -15,95 +15,91 @@ import type {
 
 import type {
     CommentAnchor,
+    CommentId,
     CommentMessage,
     CommentThread,
     ThreadId,
-    CommentId,
 } from "@/schema/comments";
 
-export type DraftKey = string; // `${branchId}:${actorId}`
-
 export interface BranchSnapshotState {
-    /** per (branchId,actorId) draft pointer */
-    readonly draftsByKey: Map<DraftKey, Draft>;
-    /** commits by id */
-    readonly commitsById: Map<string, Commit>;
-    /** head commit id (if any) */
-    headCommitId?: string;
-    /** current snapshot payload (latest loaded/saved/autosaved) */
-    snapshot: ServiceSnapshot;
+    head?: Commit;
+    headSnapshot?: ServiceSnapshot;
+
+    /** drafts keyed by actorId */
+    drafts: Map<string, { draft: Draft; snapshot: ServiceSnapshot }>;
+
+    /** commits keyed by commitId (versionId) */
+    commits: Map<string, { commit: Commit; snapshot: ServiceSnapshot }>;
 }
 
-export interface CommentsState {
-    readonly threadsById: Map<string, CommentThread>;
+export interface CommentsBranchState {
+    threads: Map<ThreadId, CommentThread>;
+    // message index is derived; no separate store needed
 }
 
 export interface MemoryWorkspaceStore {
-    readonly info: WorkspaceInfo;
+    info: WorkspaceInfo;
 
-    readonly authorsById: Map<string, Author>;
-    readonly branchesById: Map<string, Branch>;
+    authors: Map<string, Author>;
 
-    /** branchId -> participants */
-    readonly participantsByBranchId: Map<string, readonly BranchParticipant[]>;
+    /** permissions by actorId */
+    permissionsByActor: Map<string, PermissionsMap>;
 
-    /** services input (array or map) */
-    services: ServicesInput;
+    branches: Map<string, Branch>;
+    participantsByBranch: Map<string, readonly BranchParticipant[]>;
 
-    /** templates by id */
-    readonly templatesById: Map<string, FieldTemplate>;
+    services: ServicesInput | null;
 
-    /** branchId -> snapshot state */
-    readonly snapshotsByBranchId: Map<string, BranchSnapshotState>;
+    templates: Map<string, FieldTemplate>;
 
-    /** branchId -> comments state */
-    readonly commentsByBranchId: Map<string, CommentsState>;
+    snapshotsByBranch: Map<string, BranchSnapshotState>;
 
-    /** actorId -> permissions map (optional); missing => permissive map */
-    readonly permissionsByActorId: Map<string, PermissionsMap>;
+    commentsByBranch: Map<string, CommentsBranchState>;
 }
 
-/* ---------------- comments helper (in-memory shapes) ---------------- */
-
-export interface CreateThreadInput {
-    readonly anchor: CommentAnchor;
-    readonly body: string;
-    readonly meta?: Record<string, unknown>;
+export function newBranchSnapshotState(): BranchSnapshotState {
+    return {
+        drafts: new Map<string, { draft: Draft; snapshot: ServiceSnapshot }>(),
+        commits: new Map<
+            string,
+            { commit: Commit; snapshot: ServiceSnapshot }
+        >(),
+    };
 }
 
-export interface AddMessageInput {
-    readonly threadId: ThreadId;
-    readonly body: string;
-    readonly meta?: Record<string, unknown>;
+export function newCommentsBranchState(): CommentsBranchState {
+    return {
+        threads: new Map<ThreadId, CommentThread>(),
+    };
 }
 
-export interface EditMessageInput {
-    readonly threadId: ThreadId;
-    readonly messageId: CommentId;
-    readonly body: string;
+// helpers that don’t need to know about backend.ts shapes beyond comment schemas
+export function findMessageIndex(
+    thread: CommentThread,
+    messageId: CommentId,
+): number {
+    const msgs: readonly CommentMessage[] = (thread.messages ??
+        []) as readonly CommentMessage[];
+    for (let i: number = 0; i < msgs.length; i += 1) {
+        if (msgs[i].id === messageId) return i;
+    }
+    return -1;
 }
 
-export interface MoveThreadInput {
-    readonly threadId: ThreadId;
-    readonly anchor: CommentAnchor;
+export function ensureThread(
+    state: CommentsBranchState,
+    threadId: ThreadId,
+): CommentThread {
+    const th: CommentThread | undefined = state.threads.get(threadId);
+    if (!th) {
+        throw new Error(`Comment thread not found: ${String(threadId)}`);
+    }
+    return th;
 }
 
-export interface ResolveThreadInput {
-    readonly threadId: ThreadId;
-    readonly resolved: boolean;
-}
-
-export interface DeleteThreadInput {
-    readonly threadId: ThreadId;
-}
-
-/* ---------------- branches helper ---------------- */
-
-export interface MergeInput {
-    readonly sourceId: string;
-    readonly targetId: string;
-}
-
-export interface MergeState {
-    readonly result: MergeResult;
+export function setThreadAnchor(
+    thread: CommentThread,
+    anchor: CommentAnchor,
+): CommentThread {
+    return { ...(thread as object), anchor } as CommentThread;
 }

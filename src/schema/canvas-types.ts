@@ -1,5 +1,5 @@
 import type { GraphSnapshot, GraphNode, GraphEdge, EdgeKind } from "./graph";
-import { CommentMessage, CommentThread } from "@/react/canvas/comments";
+import { CommentMessage, CommentThread } from "./comments";
 
 export type Viewport = { x: number; y: number; zoom: number };
 
