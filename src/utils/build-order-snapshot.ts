@@ -8,14 +8,14 @@ import type {
     QuantityRule,
     FallbackDiagnostics,
     ServiceFallbacks,
-} from "../schema/order";
-import type { ServiceProps, Field, FieldOption, Tag } from "../schema";
-import type { Builder } from "../core";
-import type { DgpServiceMap } from "../schema/provider";
+} from "@/schema/order";
+import type { ServiceProps, Field, FieldOption, Tag } from "@/schema";
+import type { Builder } from "@/core";
+import type { DgpServiceMap } from "@/schema/provider";
 import { isMultiField } from "./index";
 import type { PruneResult } from "./prune-fallbacks";
 import { pruneInvalidNodeFallbacks } from "./prune-fallbacks";
-import type { FallbackSettings } from "../schema/validation";
+import type { FallbackSettings } from "@/schema/validation";
 import { constraintFitOk, rateOk } from "./util";
 
 /* ───────────────────────── Public types ───────────────────────── */

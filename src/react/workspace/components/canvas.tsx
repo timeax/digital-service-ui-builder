@@ -1,20 +1,16 @@
 // src/react/adapters/reactflow/ReactFlowCanvas.tsx
 import React, { useMemo, useState } from "react";
-import ReactFlow, {
-    Background,
-    ConnectionMode,
-    MiniMap,
-} from "reactflow";
+import ReactFlow, { Background, ConnectionMode, MiniMap } from "reactflow";
 import "reactflow/dist/style.css";
 
 import {
     type AdapterOptions,
     useReactFlowAdapter,
 } from "../../adapters/reactflow/adapter";
-import type { CanvasAPI } from "../../canvas/api";
-import { Toolbar } from "../../adapters/reactflow/Toolbar";
+import type { CanvasAPI } from "@/react";
+import { Toolbar } from "../../adapters/reactflow/toolbar";
 import type { LabelPlacement, ToolsConfig } from "../../adapters/reactflow";
-import { edgeTypes, nodeTypes } from "@/components/reactflow";
+import { edgeTypes, nodeTypes } from "./reactflow";
 
 export type ReactFlowCanvasProps = {
     api: CanvasAPI;

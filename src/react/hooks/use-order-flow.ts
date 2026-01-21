@@ -1,14 +1,14 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
-import type {Builder} from '../../core';
-import type {ServiceProps, Field, Tag} from '../../schema';
-import type {DgpServiceCapability, DgpServiceMap} from '../../schema/provider';
-import type {OrderSnapshot, Scalar} from '../../schema/order';
-import type {FallbackSettings} from '../../schema/validation';
+import type {Builder} from "@/core";
+import type {ServiceProps, Field, Tag} from "@/schema";
+import type {DgpServiceCapability, DgpServiceMap} from "@/schema/provider";
+import type {OrderSnapshot, Scalar} from "@/schema/order";
+import type {FallbackSettings} from "@/schema/validation";
 
 import {Selection} from '../canvas/selection';
-import {buildOrderSnapshot} from '../../utils/build-order-snapshot';
-import {useOptionalFormApi} from '../inputs/FormContext';
+import {buildOrderSnapshot} from "@/utils/build-order-snapshot";
+import {useOptionalFormApi} from "@/react";
 
 /* ───────────────────────── public API ───────────────────────── */
 

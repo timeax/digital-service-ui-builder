@@ -2,16 +2,16 @@
 import { normalise } from "./normalise";
 import { validate } from "./validate";
 
-import type { ServiceProps, Tag, Field } from "../schema";
+import type { ServiceProps, Tag, Field } from "@/schema";
 import type {
     GraphNode,
     GraphEdge,
     GraphSnapshot,
     NodeKind,
     EdgeKind,
-} from "../schema/graph";
-import type { DgpServiceMap } from "../schema/provider";
-import type { ValidationError, ValidatorOptions } from "../schema/validation";
+} from "@/schema/graph";
+import type { DgpServiceMap } from "@/schema/provider";
+import type { ValidationError, ValidatorOptions } from "@/schema/validation";
 
 /** Options you can set on the builder (used for validation/visibility) */
 export type BuilderOptions = Omit<ValidatorOptions, "serviceMap"> & {

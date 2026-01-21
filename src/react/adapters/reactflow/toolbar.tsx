@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { useReactFlow } from "reactflow";
-import type { CanvasAPI } from "../../canvas/api";
+import type { CanvasAPI } from "@/react";
 import { resolveTools } from "./toolbar/merge";
 import type {
     ResolvedTools,

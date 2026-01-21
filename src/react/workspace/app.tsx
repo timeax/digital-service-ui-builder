@@ -1,10 +1,12 @@
 // src/react/workspace/app.tsx
 import * as React from "react";
-import { WorkspaceProvider } from "./context/provider";
-import type { WorkspaceProviderProps } from "./context/provider";
+
+import { WorkspaceProvider } from "./context";
+import type { WorkspaceProviderProps } from "./context";
 import type { Actor, WorkspaceBackend } from "./context/backend";
-import FlowCanvas, { type ToolsConfig } from "../adapters/reactflow";
-import { CanvasProvider } from "@/context/context";
+
+import type { ToolsConfig } from "../adapters/reactflow";
+import { CanvasProvider } from "./context/context";
 
 /**
  * Props for the Workspace wrapper. Mirrors WorkspaceProvider options.
@@ -22,13 +24,20 @@ export interface WorkspaceProps {
     /** Live refresh mode (poll/SSE/WS/off). Defaults to off. */
     readonly live?: WorkspaceProviderProps["live"];
 
+    /** Optional live adapter registry (ws/sse/custom). */
+    readonly liveAdapters?: WorkspaceProviderProps["liveAdapters"];
+
+    /** Debounce refresh ticks (WS bursts etc). */
+    readonly liveDebounceMs?: WorkspaceProviderProps["liveDebounceMs"];
+
     /** Autosave debounce window in ms (default 9000) */
     readonly autosaveMs?: WorkspaceProviderProps["autosaveMs"];
 
     /** Auto-run autosave when dirty (default true) */
     readonly autoAutosave?: WorkspaceProviderProps["autoAutosave"];
+
     readonly tools?: ToolsConfig;
-    children: (tools?: ToolsConfig) => React.ReactNode;
+    readonly children: (tools?: ToolsConfig) => React.ReactNode;
 }
 
 /**
@@ -42,6 +51,8 @@ export function Workspace(props: WorkspaceProps): React.JSX.Element {
         initial,
         ensureMain,
         live,
+        liveAdapters,
+        liveDebounceMs,
         autosaveMs,
         autoAutosave,
         tools,
@@ -55,6 +66,8 @@ export function Workspace(props: WorkspaceProps): React.JSX.Element {
             initial={initial}
             ensureMain={ensureMain}
             live={live}
+            liveAdapters={liveAdapters}
+            liveDebounceMs={liveDebounceMs}
             autosaveMs={autosaveMs}
             autoAutosave={autoAutosave}
         >

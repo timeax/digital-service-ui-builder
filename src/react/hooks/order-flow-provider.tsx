@@ -11,14 +11,14 @@ import React, {
     useMemo,
 } from 'react';
 
-import type {Builder} from '../../core';
+import type {Builder} from "@/core";
 import type {Selection} from '../canvas/selection';
 
-import {Provider} from '../inputs/provider';
+import {Provider} from "@/react";
 import {Registry as InputRegistryConfig} from '../inputs/registry';
 
-import {FormProvider, useFormApi} from '../inputs/FormContext';
-import type {Scalar} from '../../schema/order';
+import {FormProvider, useFormApi} from "@/react";
+import type {Scalar} from "@/schema/order";
 
 /* ───────────────────────── Types ───────────────────────── */
 

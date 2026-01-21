@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useMemo } from "react";
 import type { ReactNode } from "react";
-import { createInputRegistry } from "./registry";
+import { createInputRegistry } from "@/react";
 import type {
     Registry,
     InputDescriptor,
     InputKind,
     InputVariant,
-} from "./registry";
+} from "@/react";
 
 type InputsCtxValue = {
     registry: Registry;

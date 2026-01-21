@@ -1,6 +1,6 @@
-import Node from "@/components/reactflow/nodes/node";
+import Node from "./node";
 import React from "react";
-import { FlowNode } from "../../../../../schema/graph";
+import { FlowNode } from "@/schema/graph";
 
 const Field: React.FC<FlowNode> = (props) => {
     const {

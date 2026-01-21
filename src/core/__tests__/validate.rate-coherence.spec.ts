@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { ServiceProps } from "../../schema";
-import { DgpServiceMap } from "../../schema/provider";
-import { BuilderOptions, createBuilder } from "../builder";
-import { validateRateCoherenceDeep } from "../rate-coherence";
+import { ServiceProps } from "@/schema";
+import { DgpServiceMap } from "@/schema/provider";
+import { BuilderOptions, createBuilder } from "@/core";
+import { validateRateCoherenceDeep } from "@/core";
 
 // Helpers
 const svc = (id: number, rate: number) =>

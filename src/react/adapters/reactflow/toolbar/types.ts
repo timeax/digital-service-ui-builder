@@ -1,4 +1,4 @@
-import type {CanvasAPI} from "../../../canvas/api";
+import type {CanvasAPI} from "@/react";
 import type React from "react";
 
 export type ToolKind = 'command' | 'toggle' | 'mode' | 'menu';

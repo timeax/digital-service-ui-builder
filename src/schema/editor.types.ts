@@ -1,5 +1,5 @@
 import type { ServiceProps } from "./index";
-import { SelectionOptions } from "../react/canvas/selection";
+import { SelectionOptions } from "@/react/canvas/selection";
 
 export type EditorEvents = {
     "editor:command": { name: string; payload?: any };

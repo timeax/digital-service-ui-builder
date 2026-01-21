@@ -1,5 +1,5 @@
-import type {EventBus} from './events';
-import type {CanvasEvents} from '../../schema/canvas-types';
+import type {EventBus} from "@/react";
+import type {CanvasEvents} from "@/schema/canvas-types";
 import type {CommentsBackend, Actor, BackendError} from './backend';
 import {RetryQueue, type RetryOptions as RetryOpts} from "../../utils/retry-queue";
 

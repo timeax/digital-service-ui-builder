@@ -1,6 +1,6 @@
 import {describe, it, expect} from 'vitest';
-import {normalise} from '../normalise';
-import type {ServiceProps} from '../../schema';
+import {normalise} from "@/core";
+import type {ServiceProps} from "@/schema";
 
 describe('normalise() constraint propagation', () => {
     it('overrides child flags with nearest ancestor explicit values', () => {

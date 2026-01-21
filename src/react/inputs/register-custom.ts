@@ -1,4 +1,4 @@
-import type {Registry, InputDescriptor, InputKind, InputVariant, InputAdapter} from './registry';
+import type {Registry, InputDescriptor, InputKind, InputVariant, InputAdapter} from "@/react";
 
 const moduleCache = new Map<string, unknown>();
 

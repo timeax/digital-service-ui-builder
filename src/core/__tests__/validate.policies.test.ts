@@ -1,8 +1,8 @@
 import {describe, it, expect} from 'vitest';
-import {validate} from '../validate';
-import type {ServiceProps} from '../../schema';
-import type {DgpServiceMap} from '../../schema/provider';
-import type {DynamicRule} from '../../schema/validation';
+import {validate} from "@/core";
+import type {ServiceProps} from "@/schema";
+import type {DgpServiceMap} from "@/schema/provider";
+import type {DynamicRule} from "@/schema/validation";
 
 describe('validate() dynamic policies', () => {
     const baseProps: ServiceProps = {

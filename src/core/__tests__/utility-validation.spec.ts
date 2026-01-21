@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { validate } from "../validate";
-import type { ServiceProps, Tag, Field, FieldOption } from "../../schema";
+import { validate } from "@/core";
+import type { ServiceProps, Tag, Field, FieldOption } from "@/schema";
 
 /* ───────────────────────── helpers & fixtures ───────────────────────── */
 

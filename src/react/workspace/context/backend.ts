@@ -8,6 +8,7 @@ import type { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
 /* ---------------- core result & identity ---------------- */
 
 export interface BackendError {
+    readonly meta?: any;
     readonly code: string;
     readonly message: string;
     readonly status?: number;

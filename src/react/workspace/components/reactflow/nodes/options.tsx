@@ -1,6 +1,6 @@
-import Node from "@/components/reactflow/nodes/node";
+import Node from "./node";
 import { NodeProps } from "reactflow";
-import { GraphNode } from "../../../../../schema/graph";
+import { GraphNode } from "@/schema/graph";
 import React from "react";
 
 const Options: React.FC<NodeProps<GraphNode>> = ({ id, data: { label } }) => {

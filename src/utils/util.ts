@@ -1,5 +1,5 @@
-import type { DgpServiceMap, DgpServiceCapability } from "../schema/provider";
-import type { FallbackSettings } from "../schema/validation";
+import type { DgpServiceMap, DgpServiceCapability } from "@/schema/provider";
+import type { FallbackSettings } from "@/schema/validation";
 
 /**
  * Safely convert unknown to a finite number. Returns NaN if not finite.

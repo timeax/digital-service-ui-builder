@@ -1,9 +1,9 @@
 // src/core/__tests__/validate.test.ts
 import {describe, it, expect} from 'vitest';
-import {validate} from '../validate';
-import type {ServiceProps, Field} from '../../schema';
-import type {DgpServiceMap} from '../../schema/provider';
-import {normalise} from "../normalise";
+import {validate} from "@/core";
+import type {ServiceProps, Field} from "@/schema";
+import type {DgpServiceMap} from "@/schema/provider";
+import {normalise} from "@/core";
 
 function errs(props: ServiceProps, serviceMap: DgpServiceMap = {}, shouldNormalise = true) {
     return validate(shouldNormalise ? normalise(props) : props, {serviceMap});

@@ -1,14 +1,13 @@
 // Transport-agnostic backend interfaces the HOST must implement
 
-import type {CommentAnchor, CommentMessage, CommentThread} from './comments';
+import type { CommentAnchor, CommentMessage, CommentThread } from "./comments";
+import { BackendError } from "@/react/workspace/context/backend";
 
-export type BackendError = {
-    code: 'network' | 'forbidden' | 'not_found' | 'validation' | 'conflict' | 'unknown';
-    message: string;
-    meta?: any;
-};
+export { type BackendError } from "@/react/workspace/context/backend";
 
-export type Result<T> = { ok: true; data: T } | { ok: false; error: BackendError };
+export type Result<T> =
+    | { ok: true; data: T }
+    | { ok: false; error: BackendError };
 
 // Minimal identity for annotation; permissions enforced server-side
 export type Actor = { id: string; name?: string; avatarUrl?: string };
@@ -22,45 +21,68 @@ export type CommentMessageDTO = CommentMessage;
 
 export interface CommentsBackend {
     // Load all threads for a canvas/workspace
-    listThreads(ctx: { workspaceId: string }): Promise<Result<CommentThreadDTO[]>>;
+    listThreads(ctx: {
+        workspaceId: string;
+    }): Promise<Result<CommentThreadDTO[]>>;
 
     // Create thread with initial message
-    createThread(ctx: { workspaceId: string; actor?: Actor }, input: {
-        anchor: CommentAnchor;
-        body: string;
-        meta?: Record<string, unknown>;
-    }): Promise<Result<CommentThreadDTO>>;
+    createThread(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            anchor: CommentAnchor;
+            body: string;
+            meta?: Record<string, unknown>;
+        },
+    ): Promise<Result<CommentThreadDTO>>;
 
-    addMessage(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-        body: string;
-        meta?: Record<string, unknown>;
-    }): Promise<Result<CommentMessageDTO>>;
+    addMessage(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+            body: string;
+            meta?: Record<string, unknown>;
+        },
+    ): Promise<Result<CommentMessageDTO>>;
 
-    editMessage(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-        messageId: string;
-        body: string;
-    }): Promise<Result<CommentMessageDTO>>;
+    editMessage(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+            messageId: string;
+            body: string;
+        },
+    ): Promise<Result<CommentMessageDTO>>;
 
-    deleteMessage(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-        messageId: string;
-    }): Promise<Result<void>>;
+    deleteMessage(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+            messageId: string;
+        },
+    ): Promise<Result<void>>;
 
-    moveThread(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-        anchor: CommentAnchor;
-    }): Promise<Result<CommentThreadDTO>>;
+    moveThread(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+            anchor: CommentAnchor;
+        },
+    ): Promise<Result<CommentThreadDTO>>;
 
-    resolveThread(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-        resolved: boolean;
-    }): Promise<Result<CommentThreadDTO>>;
+    resolveThread(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+            resolved: boolean;
+        },
+    ): Promise<Result<CommentThreadDTO>>;
 
-    deleteThread(ctx: { workspaceId: string; actor?: Actor }, input: {
-        threadId: string;
-    }): Promise<Result<void>>;
+    deleteThread(
+        ctx: { workspaceId: string; actor?: Actor },
+        input: {
+            threadId: string;
+        },
+    ): Promise<Result<void>>;
 }
 
 export type CanvasBackend = {

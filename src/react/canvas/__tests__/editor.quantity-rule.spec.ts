@@ -1,6 +1,6 @@
 // src/canvas/__tests__/editor.quantity-rule.spec.ts
 import {describe, it, expect} from 'vitest';
-import {createBuilder} from "../../../core";
+import {createBuilder} from "@/core";
 import {CanvasAPI} from "../api";
 
 function baseProps() {

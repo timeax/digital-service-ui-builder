@@ -4,9 +4,9 @@ import type {
     ServiceFallback,
     ServiceIdRef,
     NodeIdRef,
-} from "../schema";
-import type { DgpServiceMap } from "../schema/provider";
-import type { FallbackSettings } from "../schema/validation";
+} from "@/schema";
+import type { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
+import type { FallbackSettings } from "@/schema/validation";
 
 export type FailedFallbackContext = {
     scope: "node" | "global";
@@ -198,10 +198,6 @@ export function collectFailedFallbacks(
 
 /* ───────────────────────── helpers ───────────────────────── */
 
-function getCap(map: DgpServiceMap, id: ServiceIdRef) {
-    return map[Number(id)] ?? map[id as any];
-}
-
 function rateOf(
     map: DgpServiceMap,
     id: ServiceIdRef | undefined,
@@ -230,18 +226,61 @@ function passesRate(
     }
 }
 
+function getCap(
+    map: DgpServiceMap,
+    id: ServiceIdRef,
+): DgpServiceCapability | undefined {
+    // Keep the old behavior, but avoid NaN poisoning lookups.
+    const direct: DgpServiceCapability | undefined = (map as any)[id];
+    if (direct) return direct;
+
+    const strKey: string = String(id);
+    const byStr: DgpServiceCapability | undefined = (map as any)[strKey];
+    if (byStr) return byStr;
+
+    const n: number =
+        typeof id === "number"
+            ? id
+            : typeof id === "string"
+              ? Number(id)
+              : Number.NaN;
+
+    if (Number.isFinite(n)) {
+        const byNum: DgpServiceCapability | undefined = (map as any)[n];
+        if (byNum) return byNum;
+    }
+
+    return undefined;
+}
+
+function isCapFlagEnabled(cap: DgpServiceCapability, flagId: string): boolean {
+    // New structure: flags[flagId].enabled
+    const fromFlags: boolean | undefined = cap.flags?.[flagId]?.enabled;
+    if (fromFlags === true) return true;
+    if (fromFlags === false) return false;
+
+    // Soft-compat during migration: if legacy boolean exists on cap, respect it.
+    const legacy: unknown = (cap as any)[flagId];
+    return legacy === true;
+}
+
 function satisfiesTagConstraints(
     tagId: string,
-    ctx: { props: ServiceProps; services: DgpServiceMap },
-    cap: { dripfeed?: boolean; refill?: boolean; cancel?: boolean },
+    ctx: Readonly<{ props: ServiceProps; services: DgpServiceMap }>,
+    cap: DgpServiceCapability,
 ): boolean {
     const tag = ctx.props.filters.find((t) => t.id === tagId);
-    const eff = tag?.constraints; // effective constraints (should already be propagated)
+    const eff: Record<string, unknown> | undefined = tag?.constraints as any; // effective constraints (propagated)
     if (!eff) return true;
-    // Only enforce flags explicitly set TRUE at the tag; false/undefined = no requirement
-    if (eff.dripfeed === true && !cap.dripfeed) return false;
-    if (eff.refill === true && !cap.refill) return false;
-    return !(eff.cancel === true && !cap.cancel);
+
+    // Enforce only keys explicitly set TRUE at the tag; false/undefined => no requirement.
+    for (const [key, value] of Object.entries(eff)) {
+        if (value === true && !isCapFlagEnabled(cap, key)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 function primaryForNode(

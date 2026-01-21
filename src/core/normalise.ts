@@ -8,7 +8,7 @@ import type {
     PricingRole,
     ServiceFallback,
     ServiceIdRef,
-} from "../schema";
+} from "@/schema";
 
 export type NormaliseOptions = {
     /** default pricing role for fields/options when missing */

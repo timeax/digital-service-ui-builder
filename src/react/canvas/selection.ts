@@ -1,7 +1,7 @@
 // src/react/canvas/selection.ts
-import type { Builder } from "../../core";
-import type { ServiceProps, Tag, Field } from "../../schema";
-import type { DgpServiceCapability } from "../../schema/provider";
+import type { Builder } from "@/core";
+import type { ServiceProps, Tag, Field } from "@/schema";
+import type { DgpServiceCapability } from "@/schema/provider";
 
 export type Env = "client" | "workspace";
 

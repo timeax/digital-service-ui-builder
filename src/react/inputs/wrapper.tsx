@@ -4,13 +4,13 @@ import type {
     FieldOption,
     UtilityMark,
     WithQuantityDefault,
-} from "../../schema";
-import type { ButtonValue, Scalar } from "../../schema/order";
-import { useInputs } from "./provider";
-import type { InputDescriptor, InputVariant, InputKind } from "./registry";
-import { resolveInputDescriptor } from "./registry";
-import { isMultiField } from "../../utils";
-import { useOptionalFormApi } from "./FormContext";
+} from "@/schema";
+import type { ButtonValue, Scalar } from "@/schema/order";
+import { useInputs } from "@/react";
+import type { InputDescriptor, InputVariant, InputKind } from "@/react";
+import { resolveInputDescriptor } from "@/react";
+import { isMultiField } from "@/utils";
+import { useOptionalFormApi } from "@/react";
 
 export type InputWrapperProps = {
     field: Field;

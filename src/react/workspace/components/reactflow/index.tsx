@@ -1,6 +1,6 @@
-import Tag from "@/components/reactflow/nodes/tags";
-import Field from "@/components/reactflow/nodes/field";
-import Options from "@/components/reactflow/nodes/options";
+import Tag from "./nodes/tags";
+import Field from "./nodes/field";
+import Options from "./nodes/options";
 
 const nodeTypes = {
     tag: Tag,

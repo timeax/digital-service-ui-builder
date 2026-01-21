@@ -1,23 +1,13 @@
 // src/core/validate.ts
-import type {
-    ServiceProps,
-    Tag,
-    Field,
-
-} from '../schema';
-import type {
-    DgpServiceMap,
-} from '../schema/provider';
+import type { ServiceProps, Tag, Field } from "@/schema";
+import type { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
 import type {
     DynamicRule,
     ValidationError,
     ValidatorOptions,
-} from '../schema/validation';
-import {isMultiField} from "../utils";
-import {collectFailedFallbacks} from "./fallback";
-
-const FLAG_KEYS = ['refill', 'cancel', 'dripfeed'] as const;
-type FlagKey = typeof FLAG_KEYS[number];
+} from "@/schema/validation";
+import { isMultiField } from "@/utils";
+import { collectFailedFallbacks } from "./fallback";
 
 /**
  * Validate a ServiceProps payload against structural, identity, visibility,
@@ -29,7 +19,7 @@ type FlagKey = typeof FLAG_KEYS[number];
  */
 export function validate(
     props: ServiceProps,
-    ctx: ValidatorOptions = {}
+    ctx: ValidatorOptions = {},
 ): ValidationError[] {
     const errors: ValidationError[] = [];
     const serviceMap: DgpServiceMap = ctx.serviceMap ?? {};
@@ -45,8 +35,8 @@ export function validate(
     const fields = Array.isArray(props.fields) ? props.fields : [];
 
     // root present
-    if (!tags.some(t => t.id === 'root')) {
-        errors.push({code: 'root_missing'});
+    if (!tags.some((t) => t.id === "root")) {
+        errors.push({ code: "root_missing" });
     }
 
     // indexes
@@ -68,7 +58,7 @@ export function validate(
     };
     for (const t of tags) {
         if (hasCycleFrom(t.id)) {
-            errors.push({code: 'cycle_in_tags', nodeId: t.id});
+            errors.push({ code: "cycle_in_tags", nodeId: t.id });
             break; // one is enough to signal
         }
     }
@@ -76,7 +66,11 @@ export function validate(
     // tag.bind_id must point to existing tag (if present)
     for (const t of tags) {
         if (t.bind_id && !tagById.has(t.bind_id)) {
-            errors.push({code: 'bad_bind_reference', nodeId: t.id, details: {ref: t.bind_id}});
+            errors.push({
+                code: "bad_bind_reference",
+                nodeId: t.id,
+                details: { ref: t.bind_id },
+            });
         }
     }
 
@@ -86,12 +80,20 @@ export function validate(
         if (Array.isArray(b)) {
             for (const id of b) {
                 if (!tagById.has(id)) {
-                    errors.push({code: 'bad_bind_reference', nodeId: f.id, details: {ref: id}});
+                    errors.push({
+                        code: "bad_bind_reference",
+                        nodeId: f.id,
+                        details: { ref: id },
+                    });
                 }
             }
-        } else if (typeof b === 'string') {
+        } else if (typeof b === "string") {
             if (!tagById.has(b)) {
-                errors.push({code: 'bad_bind_reference', nodeId: f.id, details: {ref: b}});
+                errors.push({
+                    code: "bad_bind_reference",
+                    nodeId: f.id,
+                    details: { ref: b },
+                });
             }
         }
     }
@@ -103,11 +105,13 @@ export function validate(
     {
         const seen = new Set<string>();
         for (const t of tags) {
-            if (seen.has(t.id)) errors.push({code: 'duplicate_id', nodeId: t.id});
+            if (seen.has(t.id))
+                errors.push({ code: "duplicate_id", nodeId: t.id });
             seen.add(t.id);
         }
         for (const f of fields) {
-            if (seen.has(f.id)) errors.push({code: 'duplicate_id', nodeId: f.id});
+            if (seen.has(f.id))
+                errors.push({ code: "duplicate_id", nodeId: f.id });
             seen.add(f.id);
         }
     }
@@ -117,10 +121,19 @@ export function validate(
         const seen = new Map<string, string>(); // label -> tagId
         for (const t of tags) {
             if (!t.label || !t.label.trim()) {
-                errors.push({code: 'label_missing', nodeId: t.id, details: {kind: 'tag'}});
+                errors.push({
+                    code: "label_missing",
+                    nodeId: t.id,
+                    details: { kind: "tag" },
+                });
             }
             const k = t.label;
-            if (seen.has(k)) errors.push({code: 'duplicate_tag_label', nodeId: t.id, details: {other: seen.get(k)}});
+            if (seen.has(k))
+                errors.push({
+                    code: "duplicate_tag_label",
+                    nodeId: t.id,
+                    details: { other: seen.get(k) },
+                });
             else seen.set(k, t.id);
         }
     }
@@ -130,16 +143,21 @@ export function validate(
         const seenNames = new Map<string, string>(); // name -> fieldId
         for (const f of fields) {
             if (!f.label || !f.label.trim()) {
-                errors.push({code: 'label_missing', nodeId: f.id, details: {kind: 'field'}});
+                errors.push({
+                    code: "label_missing",
+                    nodeId: f.id,
+                    details: { kind: "field" },
+                });
             }
             const isUserInput = !!f.name && !hasAnyServiceOption(f);
             if (isUserInput && f.name) {
                 const k = f.name;
-                if (seenNames.has(k)) errors.push({
-                    code: 'duplicate_field_name',
-                    nodeId: f.id,
-                    details: {other: seenNames.get(k)}
-                });
+                if (seenNames.has(k))
+                    errors.push({
+                        code: "duplicate_field_name",
+                        nodeId: f.id,
+                        details: { other: seenNames.get(k) },
+                    });
                 else seenNames.set(k, f.id);
             }
         }
@@ -149,7 +167,11 @@ export function validate(
     for (const f of fields) {
         for (const o of f.options ?? []) {
             if (!o.label || !o.label.trim()) {
-                errors.push({code: 'label_missing', nodeId: o.id, details: {kind: 'option', fieldId: f.id}});
+                errors.push({
+                    code: "label_missing",
+                    nodeId: o.id,
+                    details: { kind: "option", fieldId: f.id },
+                });
             }
         }
     }
@@ -160,29 +182,31 @@ export function validate(
     const incMap = props.includes_for_buttons ?? {};
     const excMap = props.excludes_for_buttons ?? {};
 
-    const parseKey = (key: string): { fieldId: string; optionId: string } | null => {
-        const [fid, oid] = key.split('::');
+    const parseKey = (
+        key: string,
+    ): { fieldId: string; optionId: string } | null => {
+        const [fid, oid] = key.split("::");
         if (!fid || !oid) return null;
-        return {fieldId: fid, optionId: oid};
+        return { fieldId: fid, optionId: oid };
     };
 
     const hasOption = (fid: string, oid: string): boolean => {
         const f = fieldById.get(fid);
         if (!f) return false;
-        return !!(f.options ?? []).find(o => o.id === oid);
+        return !!(f.options ?? []).find((o) => o.id === oid);
     };
 
     // bad_option_key
     for (const [k] of Object.entries(incMap)) {
         const p = parseKey(k);
         if (!p || !hasOption(p.fieldId, p.optionId)) {
-            errors.push({code: 'bad_option_key', details: {key: k}});
+            errors.push({ code: "bad_option_key", details: { key: k } });
         }
     }
     for (const [k] of Object.entries(excMap)) {
         const p = parseKey(k);
         if (!p || !hasOption(p.fieldId, p.optionId)) {
-            errors.push({code: 'bad_option_key', details: {key: k}});
+            errors.push({ code: "bad_option_key", details: { key: k } });
         }
     }
 
@@ -190,7 +214,11 @@ export function validate(
     for (const k of Object.keys(incMap)) {
         if (k in excMap) {
             const p = parseKey(k);
-            errors.push({code: 'option_include_exclude_conflict', nodeId: p?.fieldId, details: {key: k}});
+            errors.push({
+                code: "option_include_exclude_conflict",
+                nodeId: p?.fieldId,
+                details: { key: k },
+            });
         }
     }
 
@@ -238,13 +266,13 @@ export function validate(
         const visible = fieldsVisibleUnder(t.id);
         const seen = new Map<string, string>();
         for (const f of visible) {
-            const label = (f.label ?? '').trim();
+            const label = (f.label ?? "").trim();
             if (!label) continue;
             if (seen.has(label)) {
                 errors.push({
-                    code: 'duplicate_visible_label',
+                    code: "duplicate_visible_label",
                     nodeId: f.id,
-                    details: {tagId: t.id, other: seen.get(label)}
+                    details: { tagId: t.id, other: seen.get(label) },
                 });
             } else {
                 seen.set(label, f.id);
@@ -263,9 +291,9 @@ export function validate(
             }
             if (markers.length > 1) {
                 errors.push({
-                    code: 'quantity_multiple_markers',
+                    code: "quantity_multiple_markers",
                     nodeId: t.id,
-                    details: {tagId: t.id, markers},
+                    details: { tagId: t.id, markers },
                 });
             }
         }
@@ -281,21 +309,32 @@ export function validate(
         for (const f of visible) {
             for (const o of f.options ?? []) {
                 if (!isFiniteNumber(o.service_id)) continue;
-                const role = o.pricing_role ?? f.pricing_role ?? 'base';
-                if (role === 'base') hasBase = true;
-                else if (role === 'utility') {
+                const role = o.pricing_role ?? f.pricing_role ?? "base";
+                if (role === "base") hasBase = true;
+                else if (role === "utility") {
                     hasUtility = true;
                     utilityOptionIds.push(o.id);
                 }
             }
         }
         if (hasUtility && !hasBase) {
-            errors.push({code: 'utility_without_base', nodeId: t.id, details: {utilityOptionIds}});
+            errors.push({
+                code: "utility_without_base",
+                nodeId: t.id,
+                details: { utilityOptionIds },
+            });
         }
     }
 
     // --------- Dynamic policies (super-admin) --------------------------
-    applyPolicies(errors, props, serviceMap, ctx.policies, fieldsVisibleUnder, tags);
+    applyPolicies(
+        errors,
+        props,
+        serviceMap,
+        ctx.policies,
+        fieldsVisibleUnder,
+        tags,
+    );
 
     /* ────────────────────────────────────────────────────────────────
      * 5) SERVICE vs USER-INPUT RULES
@@ -304,41 +343,56 @@ export function validate(
         const anySvc = hasAnyServiceOption(f);
         const hasName = !!(f.name && f.name.trim());
         // "custom" must not carry service options
-        if (f.type === 'custom' && anySvc) {
+        if (f.type === "custom" && anySvc) {
             errors.push({
-                code: 'user_input_field_has_service_option',
+                code: "user_input_field_has_service_option",
                 nodeId: f.id,
-                details: {reason: 'custom_cannot_map_service'}
+                details: { reason: "custom_cannot_map_service" },
             });
         }
         if (!hasName) {
             // treated as service-backed → require at least one service option
             if (!anySvc) {
-                errors.push({code: 'service_field_missing_service_id', nodeId: f.id});
+                errors.push({
+                    code: "service_field_missing_service_id",
+                    nodeId: f.id,
+                });
             }
         } else {
             // user-input → options must not carry service_id
             if (anySvc) {
-                errors.push({code: 'user_input_field_has_service_option', nodeId: f.id});
+                errors.push({
+                    code: "user_input_field_has_service_option",
+                    nodeId: f.id,
+                });
             }
         }
     }
 
     // Utility rules — option-level (conflicts and marker validity)
     {
-        const ALLOWED_UTILITY_MODES = new Set(['flat', 'per_quantity', 'per_value', 'percent']);
+        const ALLOWED_UTILITY_MODES = new Set([
+            "flat",
+            "per_quantity",
+            "per_value",
+            "percent",
+        ]);
         for (const f of fields) {
             const optsArr = Array.isArray(f.options) ? f.options : [];
             for (const o of optsArr) {
-                const role = o.pricing_role ?? f.pricing_role ?? 'base';
+                const role = o.pricing_role ?? f.pricing_role ?? "base";
                 const hasService = isFiniteNumber(o.service_id);
                 const util = (o.meta as any)?.utility;
 
-                if (role === 'utility' && hasService) {
+                if (role === "utility" && hasService) {
                     errors.push({
-                        code: 'utility_with_service_id',
+                        code: "utility_with_service_id",
                         nodeId: o.id,
-                        details: {fieldId: f.id, optionId: o.id, service_id: o.service_id},
+                        details: {
+                            fieldId: f.id,
+                            optionId: o.id,
+                            service_id: o.service_id,
+                        },
                     });
                 }
 
@@ -347,16 +401,16 @@ export function validate(
                     const rate = util.rate;
                     if (!isFiniteNumber(rate)) {
                         errors.push({
-                            code: 'utility_missing_rate',
+                            code: "utility_missing_rate",
                             nodeId: o.id,
-                            details: {fieldId: f.id, optionId: o.id},
+                            details: { fieldId: f.id, optionId: o.id },
                         });
                     }
                     if (!ALLOWED_UTILITY_MODES.has(mode)) {
                         errors.push({
-                            code: 'utility_invalid_mode',
+                            code: "utility_invalid_mode",
                             nodeId: o.id,
-                            details: {fieldId: f.id, optionId: o.id, mode},
+                            details: { fieldId: f.id, optionId: o.id, mode },
                         });
                     }
                 }
@@ -371,16 +425,16 @@ export function validate(
             const rate = util.rate;
             if (!isFiniteNumber(rate)) {
                 errors.push({
-                    code: 'utility_missing_rate',
+                    code: "utility_missing_rate",
                     nodeId: f.id,
-                    details: {fieldId: f.id},
+                    details: { fieldId: f.id },
                 });
             }
             if (!ALLOWED_UTILITY_MODES.has(mode)) {
                 errors.push({
-                    code: 'utility_invalid_mode',
+                    code: "utility_invalid_mode",
                     nodeId: f.id,
-                    details: {fieldId: f.id, mode},
+                    details: { fieldId: f.id, mode },
                 });
             }
         }
@@ -405,9 +459,9 @@ export function validate(
             for (const o of f.options ?? []) {
                 const sid = o.service_id;
                 if (!isFiniteNumber(sid)) continue;
-                const role = (o.pricing_role ?? f.pricing_role ?? 'base');
-                if (role === 'base') hasBase = true;
-                else if (role === 'utility') {
+                const role = o.pricing_role ?? f.pricing_role ?? "base";
+                if (role === "base") hasBase = true;
+                else if (role === "utility") {
                     hasUtility = true;
                     utilityOptionIds.push(o.id);
                 }
@@ -416,9 +470,9 @@ export function validate(
 
         if (hasUtility && !hasBase) {
             errors.push({
-                code: 'utility_without_base',
+                code: "utility_without_base",
                 nodeId: t.id, // attach to the tag/group
-                details: {utilityOptionIds}
+                details: { utilityOptionIds },
             });
         }
     }
@@ -428,15 +482,15 @@ export function validate(
         if (!isMultiField(f)) continue;
         const baseRates = new Set<number>();
         for (const o of f.options ?? []) {
-            const role = o.pricing_role ?? f.pricing_role ?? 'base';
-            if (role !== 'base') continue;
+            const role = o.pricing_role ?? f.pricing_role ?? "base";
+            if (role !== "base") continue;
             const sid = o.service_id;
             if (!isFiniteNumber(sid)) continue;
             const rate = serviceMap[sid!]?.rate;
             if (isFiniteNumber(rate)) baseRates.add(Number(rate));
         }
         if (baseRates.size > 1) {
-            errors.push({code: 'rate_mismatch_across_base', nodeId: f.id});
+            errors.push({ code: "rate_mismatch_across_base", nodeId: f.id });
         }
     }
 
@@ -444,34 +498,71 @@ export function validate(
      * 7) CONSTRAINTS vs CAPABILITIES + INHERITANCE
      * ──────────────────────────────────────────────────────────────── */
     // Build ancestor chain resolver
-// Inheritance contradiction (nearest ancestor wins; descendants cannot contradict)
+    // Inheritance contradiction (nearest ancestor wins; descendants cannot contradict)
     // effective constraint resolution (nearest ancestor wins)
-    const flags: Array<keyof NonNullable<Tag['constraints']>> = ['refill', 'cancel', 'dripfeed'];
+    type ConstraintBag = Record<string, boolean | undefined>;
 
-    function effectiveConstraints(tagId: string): Partial<Record<typeof flags[number], boolean>> {
-        const out: Partial<Record<typeof flags[number], boolean>> = {};
-        for (const key of flags) {
-            // walk up until you find a defined value
+    function constraintKeysInChain(tagId: string): string[] {
+        const keys: string[] = [];
+        const seenKeys: Set<string> = new Set<string>();
+
+        let cur: string | undefined = tagId;
+        const seenTags: Set<string> = new Set<string>();
+
+        while (cur && !seenTags.has(cur)) {
+            seenTags.add(cur);
+
+            const t = tagById.get(cur);
+            const c: unknown = t?.constraints;
+
+            if (c && typeof c === "object") {
+                for (const k of Object.keys(c as any)) {
+                    if (!seenKeys.has(k)) {
+                        seenKeys.add(k);
+                        keys.push(k);
+                    }
+                }
+            }
+
+            cur = t?.bind_id;
+        }
+
+        return keys;
+    }
+
+    function effectiveConstraints(tagId: string): ConstraintBag {
+        const out: ConstraintBag = {};
+        const keys: string[] = constraintKeysInChain(tagId);
+
+        for (const key of keys) {
             let cur: string | undefined = tagId;
-            const seen = new Set<string>();
+            const seen: Set<string> = new Set<string>();
+
             while (cur && !seen.has(cur)) {
                 seen.add(cur);
+
                 const t = tagById.get(cur);
-                const v = t?.constraints?.[key];
-                if (v !== undefined) {
+                const v: unknown = (t?.constraints as any)?.[key];
+
+                if (v === true || v === false) {
                     out[key] = v;
                     break;
                 }
+
                 cur = t?.bind_id;
             }
         }
+
         return out;
     }
 
     // Enforce tag constraints on visible options' services
     for (const t of tags) {
         const eff = effectiveConstraints(t.id);
-        if (!FLAG_KEYS.some(k => eff[k] === true)) continue; // nothing to enforce
+        const hasAnyRequired: boolean = Object.values(eff).some(
+            (v) => v === true,
+        );
+        if (!hasAnyRequired) continue;
 
         const visible = fieldsVisibleUnder(t.id);
         for (const f of visible) {
@@ -480,12 +571,12 @@ export function validate(
                 const svc = serviceMap[o.service_id];
                 if (!svc) continue;
 
-                for (const k of FLAG_KEYS) {
-                    if (eff[k] === true && (svc as any)[k] === false) {
+                for (const [k, v] of Object.entries(eff)) {
+                    if (v === true && !isServiceFlagEnabled(svc as any, k)) {
                         errors.push({
-                            code: 'unsupported_constraint_option',
-                            nodeId: o.id,
-                            details: {tagId: t.id, flag: k, serviceId: o.service_id},
+                            code: "unsupported_constraint",
+                            nodeId: t.id,
+                            details: { flag: k, serviceId: o.service_id },
                         });
                     }
                 }
@@ -502,14 +593,14 @@ export function validate(
 
         const eff = effectiveConstraints(t.id); // ← use inherited constraints
 
-        if (eff.refill === true && svc.refill === false) {
-            errors.push({code: 'unsupported_constraint', nodeId: t.id, details: {flag: 'refill', serviceId: sid}});
-        }
-        if (eff.cancel === true && svc.cancel === false) {
-            errors.push({code: 'unsupported_constraint', nodeId: t.id, details: {flag: 'cancel', serviceId: sid}});
-        }
-        if (eff.dripfeed === true && svc.dripfeed === false) {
-            errors.push({code: 'unsupported_constraint', nodeId: t.id, details: {flag: 'dripfeed', serviceId: sid}});
+        for (const [k, v] of Object.entries(eff)) {
+            if (v === true && !isServiceFlagEnabled(svc as any, k)) {
+                errors.push({
+                    code: "unsupported_constraint",
+                    nodeId: t.id,
+                    details: { flag: k, serviceId: sid },
+                });
+            }
         }
     }
 
@@ -517,16 +608,17 @@ export function validate(
     for (const t of tags) {
         const ov = t.constraints_overrides;
         if (!ov) continue;
-        for (const k of Object.keys(ov) as FlagKey[]) {
-            const {from, to, origin} = ov[k]!;
+        for (const k of Object.keys(ov) as string[]) {
+            const { from, to, origin } = ov[k]!;
             errors.push({
-                code: 'constraint_overridden',
+                code: "constraint_overridden",
                 nodeId: t.id,
                 details: {
                     flag: k,
-                    from, to,
+                    from,
+                    to,
                     origin,
-                    severity: 'warning'
+                    severity: "warning",
                 },
             } as any);
         }
@@ -536,9 +628,9 @@ export function validate(
      * 8) CUSTOM FIELD RULES
      * ──────────────────────────────────────────────────────────────── */
     for (const f of fields) {
-        if (f.type === 'custom') {
+        if (f.type === "custom") {
             if (!f.component || !String(f.component).trim()) {
-                errors.push({code: 'custom_component_missing', nodeId: f.id});
+                errors.push({ code: "custom_component_missing", nodeId: f.id });
             }
             // "unresolvable" would require a registry; not checked here
         }
@@ -552,9 +644,9 @@ export function validate(
         for (const f of fields) {
             for (const o of f.options ?? []) {
                 if (!isFiniteNumber(o.service_id)) continue;
-                const role = o.pricing_role ?? f.pricing_role ?? 'base';
-                if (role === 'base') hasBase = true;
-                else if (role === 'utility') hasUtility = true;
+                const role = o.pricing_role ?? f.pricing_role ?? "base";
+                if (role === "base") hasBase = true;
+                else if (role === "utility") hasUtility = true;
                 if (hasUtility && hasBase) break;
             }
             if (hasUtility && hasBase) break;
@@ -562,13 +654,12 @@ export function validate(
 
         if (hasUtility && !hasBase) {
             errors.push({
-                code: 'utility_without_base',
-                nodeId: 'global',                 // ← signals it’s the global lint
-                details: {scope: 'global'}      // ← consumers can treat as warning
+                code: "utility_without_base",
+                nodeId: "global", // ← signals it’s the global lint
+                details: { scope: "global" }, // ← consumers can treat as warning
             });
         }
     }
-
 
     // ─── Unbound fields: must be bound or included somewhere ────────────────
     {
@@ -593,34 +684,39 @@ export function validate(
                 !includedByTag.has(f.id) &&
                 !includedByOption.has(f.id)
             ) {
-                errors.push({code: 'field_unbound', nodeId: f.id});
+                errors.push({ code: "field_unbound", nodeId: f.id });
             }
         }
     }
 
     // ── Fallback validation ────────────────────────────────────────────────
-    const mode = ctx.fallbackSettings?.mode ?? 'strict';
+    const mode = ctx.fallbackSettings?.mode ?? "strict";
     if (props.fallbacks) {
         const diags = collectFailedFallbacks(
             props,
             ctx.serviceMap ?? {},
-            {...ctx.fallbackSettings, mode: 'dev'} // collect non-fatal diagnostics
+            { ...ctx.fallbackSettings, mode: "dev" }, // collect non-fatal diagnostics
         );
 
-        if (mode === 'strict') {
+        if (mode === "strict") {
             // Convert node-scoped violations into ValidationError; global stays soft
             for (const d of diags) {
-                if (d.scope === 'global') continue;
+                if (d.scope === "global") continue;
                 // Only report when the candidate failed in all of its contexts. We approximate:
                 // group by (nodeId,candidate) and check if we only saw failing reasons.
                 // For simplicity, we emit per-failing context; editor may prune accordingly.
                 const code =
-                    d.reason === 'unknown_service' ? 'fallback_unknown_service' :
-                        d.reason === 'no_primary' ? 'fallback_no_primary' :
-                            d.reason === 'rate_violation' ? 'fallback_rate_violation' :
-                                d.reason === 'constraint_mismatch' ? 'fallback_constraint_mismatch' :
-                                    d.reason === 'cycle' ? 'fallback_cycle' :
-                                        'fallback_bad_node';
+                    d.reason === "unknown_service"
+                        ? "fallback_unknown_service"
+                        : d.reason === "no_primary"
+                          ? "fallback_no_primary"
+                          : d.reason === "rate_violation"
+                            ? "fallback_rate_violation"
+                            : d.reason === "constraint_mismatch"
+                              ? "fallback_constraint_mismatch"
+                              : d.reason === "cycle"
+                                ? "fallback_cycle"
+                                : "fallback_bad_node";
 
                 errors.push({
                     code: code as any,
@@ -639,7 +735,6 @@ export function validate(
     return errors;
 }
 
-
 // ───────────────────── Policy helpers ─────────────────────
 
 type ServiceItem = {
@@ -647,20 +742,9 @@ type ServiceItem = {
     fieldId: string;
     optionId: string;
     serviceId: number;
-    role: 'base' | 'utility';
+    role: "base" | "utility";
     // capability snapshot (if present in serviceMap)
-    service?: {
-        id?: number;
-        key?: string;
-        type?: string;
-        rate?: number;
-        handler_id?: number;
-        platform_id?: number;
-        dripfeed?: boolean;
-        refill?: boolean;
-        cancel?: boolean;
-        [k: string]: unknown;
-    };
+    service?: Partial<DgpServiceCapability>;
 };
 
 function asArray<T>(v: T | T[] | undefined): T[] | undefined {
@@ -670,7 +754,7 @@ function asArray<T>(v: T | T[] | undefined): T[] | undefined {
 
 function getByPath(obj: any, path: string | undefined): unknown {
     if (!path) return undefined;
-    const parts = path.split('.');
+    const parts = path.split(".");
     let cur = obj;
     for (const p of parts) {
         if (cur == null) return undefined;
@@ -679,18 +763,91 @@ function getByPath(obj: any, path: string | undefined): unknown {
     return cur;
 }
 
+type WhereClause = NonNullable<
+    NonNullable<DynamicRule["filter"]>["where"]
+>[number];
+
+function jsonStable(v: unknown): string {
+    try {
+        return JSON.stringify(v);
+    } catch {
+        return String(v);
+    }
+}
+
+function eqValue(a: unknown, b: unknown): boolean {
+    // fast path for primitives
+    if (Object.is(a, b)) return true;
+    // fallback
+    return jsonStable(a) === jsonStable(b);
+}
+
+function includesValue(arr: readonly unknown[], needle: unknown): boolean {
+    for (const v of arr) {
+        if (eqValue(v, needle)) return true;
+    }
+    return false;
+}
+
+function matchesWhere(
+    svc: Record<string, unknown>,
+    where: readonly WhereClause[] | undefined,
+): boolean {
+    if (!where || where.length === 0) return true;
+
+    const root: Record<string, unknown> = { service: svc };
+
+    for (const clause of where) {
+        const path: string = clause.path;
+        const op: string = clause.op ?? "eq";
+        const value: unknown = clause.value;
+
+        const cur: unknown = getByPath(root as any, path);
+
+        if (op === "exists") {
+            if (cur === undefined || cur === null) return false;
+            continue;
+        }
+        if (op === "truthy") {
+            if (!cur) return false;
+            continue;
+        }
+        if (op === "falsy") {
+            if (cur) return false;
+            continue;
+        }
+
+        if (op === "in" || op === "nin") {
+            const list: unknown[] = Array.isArray(value) ? value : [];
+            const hit: boolean = includesValue(list, cur);
+            if (op === "in" && !hit) return false;
+            if (op === "nin" && hit) return false;
+            continue;
+        }
+
+        if (op === "neq") {
+            if (eqValue(cur, value)) return false;
+            continue;
+        }
+
+        // default "eq"
+        if (!eqValue(cur, value)) return false;
+    }
+
+    return true;
+}
+
 /** Build a list of ServiceItems from a set of fields, filtered by role and id filters */
 function collectServiceItems(
     fields: Field[],
     tagId: string | undefined,
     serviceMap: DgpServiceMap,
-    filter?: DynamicRule['filter'],
+    filter?: DynamicRule["filter"],
 ): ServiceItem[] {
-    const roleFilter = filter?.role ?? 'both';
+    const roleFilter = filter?.role ?? "both";
     const fieldIdAllow = asArray(filter?.field_id);
     const tagIdAllow = asArray(filter?.tag_id);
-    const handlerAllow = asArray(filter?.handler_id);
-    const platformAllow = asArray(filter?.platform_id);
+    const where: readonly WhereClause[] | undefined = filter?.where;
 
     const out: ServiceItem[] = [];
 
@@ -699,14 +856,15 @@ function collectServiceItems(
 
         for (const o of f.options ?? []) {
             const sid = o.service_id;
-            if (typeof sid !== 'number' || !Number.isFinite(sid)) continue;
+            if (typeof sid !== "number" || !Number.isFinite(sid)) continue;
 
-            const role = (o.pricing_role ?? f.pricing_role ?? 'base') as 'base' | 'utility';
-            if (roleFilter !== 'both' && role !== roleFilter) continue;
+            const role = (o.pricing_role ?? f.pricing_role ?? "base") as
+                | "base"
+                | "utility";
+            if (roleFilter !== "both" && role !== roleFilter) continue;
 
             const svc = serviceMap[sid];
-            if (handlerAllow && (svc?.handler_id == null || !handlerAllow.includes(svc.handler_id))) continue;
-            if (platformAllow && (svc?.platform_id == null || !platformAllow.includes(svc.platform_id))) continue;
+            if (where && svc && !matchesWhere(svc as any, where)) continue;
             if (tagIdAllow && (!tagId || !tagIdAllow.includes(tagId))) continue;
 
             out.push({
@@ -715,35 +873,37 @@ function collectServiceItems(
                 optionId: o.id,
                 serviceId: sid,
                 role,
-                service: svc ? {
-                    id: svc.id,
-                    key: svc.key as any,
-                    type: (svc as any).type as any, // optional in your map
-                    rate: svc.rate,
-                    handler_id: (svc as any).handler_id as any,
-                    platform_id: (svc as any).platform_id as any,
-                    dripfeed: svc.dripfeed,
-                    refill: svc.refill,
-                    cancel: svc.cancel,
-                    ...svc.meta,
-                } : undefined,
+                service: svc
+                    ? {
+                          ...svc,
+                          id: svc.id,
+                          key: svc.key as any,
+                          type: (svc as any).type as any, // optional in your map
+                          rate: svc.rate,
+                          ...svc.meta,
+                      }
+                    : undefined,
             });
         }
     }
     return out;
 }
 
-function evalPolicyOp(op: DynamicRule['op'], values: unknown[], rule: DynamicRule): boolean {
+function evalPolicyOp(
+    op: DynamicRule["op"],
+    values: unknown[],
+    rule: DynamicRule,
+): boolean {
     switch (op) {
-        case 'all_equal': {
-            const set = new Set(values.map(v => JSON.stringify(v)));
+        case "all_equal": {
+            const set = new Set(values.map((v) => JSON.stringify(v)));
             return set.size <= 1;
         }
-        case 'no_mix': {
-            const set = new Set(values.map(v => JSON.stringify(v)));
+        case "no_mix": {
+            const set = new Set(values.map((v) => JSON.stringify(v)));
             return set.size <= 1;
         }
-        case 'unique': {
+        case "unique": {
             const seen = new Set<string>();
             for (const v of values) {
                 const k = JSON.stringify(v);
@@ -752,18 +912,19 @@ function evalPolicyOp(op: DynamicRule['op'], values: unknown[], rule: DynamicRul
             }
             return true;
         }
-        case 'all_true': {
-            return values.every(v => v === true);
+        case "all_true": {
+            return values.every((v) => v === true);
         }
-        case 'any_true': {
-            return values.some(v => v === true);
+        case "any_true": {
+            return values.some((v) => v === true);
         }
-        case 'max_count': {
-            const limit = typeof rule.value === 'number' ? rule.value : Infinity;
+        case "max_count": {
+            const limit =
+                typeof rule.value === "number" ? rule.value : Infinity;
             return values.length <= limit;
         }
-        case 'min_count': {
-            const min = typeof rule.value === 'number' ? rule.value : 0;
+        case "min_count": {
+            const min = typeof rule.value === "number" ? rule.value : 0;
             return values.length >= min;
         }
         default:
@@ -782,21 +943,26 @@ function applyPolicies(
     if (!policies?.length) return;
 
     for (const rule of policies) {
-        const projPath = rule.projection ?? 'service.id';
+        const projPath = rule.projection ?? "service.id";
 
-        if (rule.scope === 'global') {
+        if (rule.scope === "global") {
             const allFields = props.fields ?? [];
-            const items = collectServiceItems(allFields, undefined, serviceMap, rule.filter);
-            const values = items.map(it => getByPath(it, projPath));
+            const items = collectServiceItems(
+                allFields,
+                undefined,
+                serviceMap,
+                rule.filter,
+            );
+            const values = items.map((it) => getByPath(it, projPath));
 
             if (!evalPolicyOp(rule.op, values, rule)) {
                 errors.push({
-                    code: 'policy_violation',
-                    nodeId: 'global',
+                    code: "policy_violation",
+                    nodeId: "global",
                     details: {
                         ruleId: rule.id,
-                        scope: 'global',
-                        severity: rule.severity ?? 'error',
+                        scope: "global",
+                        severity: rule.severity ?? "error",
                         op: rule.op,
                         projection: projPath,
                         count: items.length,
@@ -809,19 +975,24 @@ function applyPolicies(
         // visible_group
         for (const t of tags) {
             const visibleFields = fieldsVisibleUnder(t.id);
-            const items = collectServiceItems(visibleFields, t.id, serviceMap, rule.filter);
+            const items = collectServiceItems(
+                visibleFields,
+                t.id,
+                serviceMap,
+                rule.filter,
+            );
             if (!items.length) continue;
 
-            const values = items.map(it => getByPath(it, projPath));
+            const values = items.map((it) => getByPath(it, projPath));
 
             if (!evalPolicyOp(rule.op, values, rule)) {
                 errors.push({
-                    code: 'policy_violation',
+                    code: "policy_violation",
                     nodeId: t.id,
                     details: {
                         ruleId: rule.id,
-                        scope: 'visible_group',
-                        severity: rule.severity ?? 'error',
+                        scope: "visible_group",
+                        severity: rule.severity ?? "error",
                         op: rule.op,
                         projection: projPath,
                         count: items.length,
@@ -835,11 +1006,11 @@ function applyPolicies(
 /* ───────────────────────── helpers ───────────────────────── */
 
 function hasAnyServiceOption(f: Field): boolean {
-    return (f.options ?? []).some(o => isFiniteNumber(o.service_id));
+    return (f.options ?? []).some((o) => isFiniteNumber(o.service_id));
 }
 
 function isFiniteNumber(v: unknown): v is number {
-    return typeof v === 'number' && Number.isFinite(v);
+    return typeof v === "number" && Number.isFinite(v);
 }
 
 // ─── helper: is a field bound to a given tag? ───────────────────────────────────
@@ -847,4 +1018,25 @@ function isBoundTo(f: Field, tagId: string): boolean {
     const b = f.bind_id;
     if (!b) return false;
     return Array.isArray(b) ? b.includes(tagId) : b === tagId;
+}
+
+function serviceFlagState(
+    svc: Record<string, unknown>,
+    flagId: string,
+): boolean | undefined {
+    const flags: unknown = (svc as any).flags;
+    const entry: unknown =
+        flags && typeof flags === "object" ? (flags as any)[flagId] : undefined;
+
+    const enabled: unknown =
+        entry && typeof entry === "object" ? (entry as any).enabled : undefined;
+    if (enabled === true) return true;
+    if (enabled === false) return false;
+}
+
+function isServiceFlagEnabled(
+    svc: Record<string, unknown>,
+    flagId: string,
+): boolean {
+    return serviceFlagState(svc, flagId) === true;
 }

@@ -12,9 +12,9 @@ import type {
     GraphNode,
     GraphEdge,
     EdgeKind,
-} from "../schema/graph";
+} from "@/schema/graph";
 
-import type { NodePos, NodePositions } from "../schema/canvas-types";
+import type { NodePos, NodePositions } from "@/schema/canvas-types";
 
 /* ───────────────────────────── Options & Types ───────────────────────────── */
 

@@ -48,29 +48,62 @@ export type ValidationError = {
     code: ValidationCode;
     nodeId?: string; // tag/field/option id
     details?: Record<string, unknown> & {
-        affectedIds?: string[]
+        affectedIds?: string[];
     };
+};
+
+// add near DynamicRule (above it or just below ValidationError)
+
+export type ServiceWhereOp =
+    | "eq"
+    | "neq"
+    | "in"
+    | "nin"
+    | "exists"
+    | "truthy"
+    | "falsy";
+
+/**
+ * Host-extensible service filter clause.
+ * `path` should usually be "service.<prop>" or "service.meta.<prop>" etc.
+ */
+export type ServiceWhereClause = {
+    path: string;
+    op?: ServiceWhereOp;
+    value?: unknown;
 };
 
 export type DynamicRule = {
     id: string;
     scope: "global" | "visible_group";
     subject: "services";
+
+    /**
+     * Package-level filter surface:
+     * - role/tag/field are core to the builder schema
+     * - where[] allows hosts to filter against extra service properties (handler_id/platform_id/type/key/category_id/etc.)
+     */
     filter?: {
         role?: "base" | "utility" | "both";
-        handler_id?: number | number[];
-        platform_id?: number | number[];
         tag_id?: string | string[];
         field_id?: string | string[];
+
+        where?: ServiceWhereClause[];
     };
+
+    /**
+     * Projection is intentionally open:
+     * hosts may project custom service properties.
+     */
     projection?:
-        | "service.type"
-        | "service.key"
+        | "service.id"
+        | "service.name"
         | "service.rate"
-        | "service.handler_id"
-        | "service.platform_id"
-        | "service.dripfeed"
+        | "service.min"
+        | "service.max"
+        | "service.category"
         | string;
+
     op:
         | "all_equal"
         | "unique"
@@ -79,6 +112,7 @@ export type DynamicRule = {
         | "any_true"
         | "max_count"
         | "min_count";
+
     value?: number | boolean; // for max/min/all_true/any_true
     severity?: "error" | "warning";
     message?: string;

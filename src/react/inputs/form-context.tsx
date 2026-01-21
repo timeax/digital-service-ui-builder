@@ -7,7 +7,7 @@ import React, {
     useState,
 } from "react";
 import type { ReactNode } from "react";
-import type { Scalar } from "../../schema/order";
+import type { Scalar } from "@/schema/order";
 
 export type FormSnapshot = {
     values: Record<string, Scalar | Scalar[]>;

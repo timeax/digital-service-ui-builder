@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { createBuilder } from "../../../core";
+import { createBuilder } from "@/core";
 import { CanvasAPI } from "../api";
-import type { ServiceProps } from "../../../schema";
-import type { DgpServiceMap } from "../../../schema/provider";
-import type { FallbackSettings } from "../../../schema/validation";
+import type { ServiceProps } from "@/schema";
+import type { DgpServiceMap } from "@/schema/provider";
+import type { FallbackSettings } from "@/schema/validation";
 
 function baseProps(): ServiceProps {
     return {

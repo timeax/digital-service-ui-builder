@@ -1,12 +1,12 @@
 import React, { ReactNode, useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
 import { LiaTagsSolid } from "react-icons/lia";
 import { RxInput } from "react-icons/rx";
 import { TbHandClick } from "react-icons/tb";
 import { LuTextSelect } from "react-icons/lu";
 import { TfiComments } from "react-icons/tfi";
-import { useCanvasAPI } from "@/context/context";
 import { Handle, Position } from "reactflow";
+import { useCanvasAPI } from "@/react/workspace/context/context";
+import { clsx } from "clsx";
 
 interface Errors {
     title?: string;
@@ -95,7 +95,7 @@ const Node: React.FC<NodeProps> = ({
     );
     return (
         <div
-            className={cn(
+            className={clsx(
                 "px-4 items-center gap-2 relative min-h-[40px] flex h-fit bg-card ring ring-grey-100 rounded-md shadow text-card-foreground font-black",
             )}
         >

@@ -1,17 +1,51 @@
-/** Minimal capability shape sourced from DgpService */
+// src/schema/provider.ts
+export type TimeRangeEstimate = {
+    min_seconds?: number;
+    max_seconds?: number;
+    label?: string; // "instant" | "5-30 mins" | ...
+    meta?: Record<string, unknown>;
+};
+
+export type SpeedEstimate = {
+    amount?: number; // e.g. 500
+    per?: "minute" | "hour" | "day" | "week" | "month";
+    unit?: string; // e.g. "followers", "likes"
+    label?: string; // e.g. "500/day", "fast"
+    meta?: Record<string, unknown>;
+};
+
+export type ServiceEstimates = {
+    start?: TimeRangeEstimate;
+    speed?: SpeedEstimate;
+    average?: TimeRangeEstimate;
+    meta?: Record<string, unknown>;
+};
+
+export type ServiceFlag = {
+    enabled: boolean;
+    description: string; // MUST
+    meta?: Record<string, unknown>;
+};
+
+export type IdType = string | number;
+
+export type ServiceFlags = Record<string, ServiceFlag>; // flagId -> flag
+
 export type DgpServiceCapability = {
-    id: number;
-    name?: string;                    // human-friendly name
-    key?: string;                     // provider key if relevant
-    rate?: number;                    // canonical numeric rate
-    min?: number;                     // min order qty
-    max?: number;                     // max order qty
-    dripfeed?: boolean;
-    refill?: boolean;
-    cancel?: boolean;
-    estimate?: { start?: number | null; speed?: number | null; average?: number | null };
+    id: IdType;
+    name: string;
+    rate: number;
+    min?: number;
+    max?: number;
+
+    category?: string;
+
+    flags?: ServiceFlags;
+    estimates?: ServiceEstimates;
+
     meta?: Record<string, unknown>;
     [x: string]: any;
 };
 
-export type DgpServiceMap = Record<number, DgpServiceCapability>; // id -> capability
+export type DgpServiceMap = Record<string, DgpServiceCapability> &
+    Record<number, DgpServiceCapability>;

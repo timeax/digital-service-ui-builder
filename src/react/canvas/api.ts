@@ -1,4 +1,4 @@
-import { EventBus } from "./events";
+import { EventBus } from "@/react";
 import type {
     CanvasEvents,
     CanvasOptions,
@@ -6,9 +6,9 @@ import type {
     NodePositions,
     Viewport,
     DraftWire,
-} from "../../schema/canvas-types";
-import type { Builder } from "../../core";
-import type { EdgeKind, GraphSnapshot } from "../../schema/graph";
+} from "@/schema/canvas-types";
+import type { Builder } from "@/core";
+import type { EdgeKind, GraphSnapshot } from "@/schema/graph";
 import { CommentsAPI } from "./comments";
 import { CanvasBackendOptions } from "./backend";
 import { Editor } from "./editor";

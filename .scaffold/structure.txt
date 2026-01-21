@@ -1,4 +1,26 @@
 src/
+  core/
+    validate/
+      index.ts
+      shared.ts
+      steps/
+        structure.ts
+        identity.ts
+        option-maps.ts
+        visibility.ts
+        service-vs-input.ts
+        utility.ts
+        rates.ts
+        constraints.ts
+        custom.ts
+        global-utility-guard.ts
+        unbound.ts
+        fallbacks.ts
+      policies/
+        where.ts
+        collect-service-items.ts
+        ops.ts
+        apply-policies.ts
   react/
     workspace/
       context/

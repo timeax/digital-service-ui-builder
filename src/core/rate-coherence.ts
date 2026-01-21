@@ -1,7 +1,7 @@
-import { RatePolicy } from "../schema/validation";
+import { RatePolicy } from "@/schema/validation";
 import { Builder } from "./builder";
-import { DgpServiceCapability, DgpServiceMap } from "../schema/provider";
-import { Field, PricingRole, ServiceProps, Tag } from "../schema";
+import { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
+import { Field, PricingRole, ServiceProps, Tag } from "@/schema";
 
 type BaseCandidate = {
     kind: "field" | "option";

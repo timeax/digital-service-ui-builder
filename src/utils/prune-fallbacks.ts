@@ -1,8 +1,8 @@
 // src/utils/prune-fallbacks.ts
-import type { ServiceProps, ServiceIdRef } from '../schema';
-import type { DgpServiceMap } from '../schema/provider';
-import type { FallbackSettings } from '../schema/validation';
-import { collectFailedFallbacks } from '../core';
+import type { ServiceProps, ServiceIdRef } from "@/schema";
+import type { DgpServiceMap } from "@/schema/provider";
+import type { FallbackSettings } from "@/schema/validation";
+import { collectFailedFallbacks } from "@/core";
 
 export type PrunedFallback = {
     nodeId: string;

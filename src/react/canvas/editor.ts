@@ -1,18 +1,18 @@
 import { cloneDeep } from "lodash-es";
-import type { Builder } from "../../core";
-import type { ServiceProps, Tag, Field } from "../../schema";
-import { normalise } from "../../core";
+import type { Builder } from "@/core";
+import type { ServiceProps, Tag, Field } from "@/schema";
+import { normalise } from "@/core";
 import type { CanvasAPI } from "./api";
 import type {
     Command,
     EditorEvents,
     EditorOptions,
-} from "../../schema/editor.types";
-import { compilePolicies, PolicyDiagnostic } from "../../core/policy";
-import { DynamicRule, FallbackSettings } from "../../schema/validation";
-import { DgpServiceCapability, DgpServiceMap } from "../../schema/provider";
-import { constraintFitOk, rateOk, toFiniteNumber } from "../../utils/util";
-import { EditorSnapshot } from "../../schema/editor";
+} from "@/schema/editor.types";
+import { compilePolicies, PolicyDiagnostic } from "@/core/policy";
+import { DynamicRule, FallbackSettings } from "@/schema/validation";
+import { DgpServiceCapability, DgpServiceMap } from "@/schema/provider";
+import { constraintFitOk, rateOk, toFiniteNumber } from "@/utils/util";
+import { EditorSnapshot } from "@/schema/editor";
 import { Selection } from "./selection";
 
 const MAX_LIMIT = 100;

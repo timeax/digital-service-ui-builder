@@ -37,25 +37,6 @@ export interface BaseFieldUI {
     defaults?: Record<string, unknown>;
 }
 
-const ui: Record<string, Ui> = {
-    multiselect: {
-        type: "boolean",
-    },
-    search: {
-        type: "boolean",
-    },
-    autocomplete: {
-        type: "boolean",
-    },
-
-    autocompleteItems: {
-        type: "array",
-        item: {
-            type: "string",
-        }
-    }
-}
-
 export type Ui = UiString | UiNumber | UiBoolean | UiAnyOf | UiArray | UiObject;
 
 /** string */
@@ -172,7 +153,9 @@ export type Field = BaseFieldUI & {
     options?: FieldOption[];
     component?: string; // required if type === 'custom'
     pricing_role?: PricingRole; // default 'base'
-    meta?: Record<string, unknown> & QuantityMark & UtilityMark;
+    meta?: Record<string, unknown> &
+        QuantityMark &
+        UtilityMark & { multi?: boolean };
 } & (
         | {
               button?: false;
@@ -184,7 +167,14 @@ export type Field = BaseFieldUI & {
           }
     );
 
-export type FlagKey = "refill" | "cancel" | "dripfeed";
+export type ConstraintKey = string;
+
+/**
+ * Back-compat alias: older code may still import FlagKey.
+ * Keeping this prevents a wave of TS errors while still allowing any string key.
+ */
+export type FlagKey = ConstraintKey;
+
 export type Tag = {
     id: string;
     label: string;
@@ -193,12 +183,14 @@ export type Tag = {
     includes?: string[];
     excludes?: string[];
     meta?: Record<string, unknown> & WithQuantityDefault;
+
     /**
      * Which flags are set for this tag. If a flag is not set, it's inherited from the nearest ancestor with a value set.
      */
-    constraints?: Partial<Record<FlagKey, boolean>>;
+    constraints?: Partial<Record<ConstraintKey, boolean>>;
+
     /** Which ancestor defined the *effective* value for each flag (nearest source). */
-    constraints_origin?: Partial<Record<FlagKey, string>>; // tagId
+    constraints_origin?: Partial<Record<ConstraintKey, string>>; // tagId
 
     /**
      * Present only when a child explicitly set a different value but was overridden
@@ -206,7 +198,7 @@ export type Tag = {
      */
     constraints_overrides?: Partial<
         Record<
-            FlagKey,
+            ConstraintKey,
             { from: boolean; to: boolean; origin: string } // child explicit -> effective + where it came from
         >
     >;

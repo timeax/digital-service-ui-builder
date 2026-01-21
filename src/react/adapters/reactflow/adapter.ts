@@ -13,9 +13,9 @@ import type {
     OnConnectEnd,
 } from "reactflow";
 import { applyNodeChanges, applyEdgeChanges } from "reactflow";
-import type { CanvasAPI } from "../../canvas/api";
-import type { CanvasState } from "../../../schema/canvas-types";
-import type { EdgeKind } from "../../../schema/graph";
+import type { CanvasAPI } from "@/react";
+import type { CanvasState } from "@/schema/canvas-types";
+import type { EdgeKind } from "@/schema/graph";
 import { CommentThread } from "../../canvas/comments";
 
 /* ───────────────────────────── Types & options ───────────────────────────── */

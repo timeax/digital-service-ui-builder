@@ -1,5 +1,5 @@
 import type React from 'react';
-import type {Scalar} from '../../schema/order';
+import type {Scalar} from "@/schema/order";
 
 /** Matches your InputWrapper’s expectations */
 export type InputKind = string;               // e.g. "text", "number", "select", "custom:Rating"

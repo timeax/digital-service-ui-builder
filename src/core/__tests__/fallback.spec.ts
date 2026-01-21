@@ -1,9 +1,9 @@
 import {describe, it, expect} from 'vitest';
-import type {ServiceProps, Tag, Field, FieldOption} from '../../schema';
-import type {DgpServiceMap} from '../../schema/provider';
+import type {ServiceProps, Tag, Field, FieldOption} from "@/schema";
+import type {DgpServiceMap} from "@/schema/provider";
 
-import {collectFailedFallbacks} from '../fallback';
-import {pruneInvalidNodeFallbacks} from '../../utils/prune-fallbacks';
+import {collectFailedFallbacks} from "@/core";
+import {pruneInvalidNodeFallbacks} from "@/utils/prune-fallbacks";
 
 // ----------------------- fixtures -----------------------
 

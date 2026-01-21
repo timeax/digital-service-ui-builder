@@ -1,9 +1,9 @@
 // src/react/adapters/reactflow/index.tsx
 import React from "react";
-import { Canvas } from "@/components/canvas";
-import { useCanvasAPI } from "@/context/context";
 import type { AdapterOptions } from "./adapter";
 import type { ToolsConfig, LabelPlacement } from "./toolbar/types";
+import { useCanvasAPI } from "@/react/workspace/context/context";
+import { Canvas } from "@/react/workspace/components/canvas";
 
 export type FlowCanvasProps = {
     tools?: ToolsConfig;

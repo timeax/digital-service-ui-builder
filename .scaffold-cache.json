@@ -87,21 +87,147 @@
     },
     "src/react/workspace/context/provider/live/adapters/manual.ts": {
       "path": "src/react/workspace/context/provider/live/adapters/manual.ts",
-      "createdAt": "2026-01-20T23:24:37.612Z",
+      "createdAt": "2026-01-21T07:30:24.890Z",
       "sizeAtCreate": 0,
       "groupName": "default",
       "groupRoot": "."
     },
     "src/react/workspace/context/provider/live/adapters/ws.ts": {
       "path": "src/react/workspace/context/provider/live/adapters/ws.ts",
-      "createdAt": "2026-01-20T23:24:37.613Z",
+      "createdAt": "2026-01-21T07:30:24.894Z",
       "sizeAtCreate": 0,
       "groupName": "default",
       "groupRoot": "."
     },
     "src/react/workspace/context/provider/live/adapters/sse.ts": {
       "path": "src/react/workspace/context/provider/live/adapters/sse.ts",
-      "createdAt": "2026-01-20T23:24:37.615Z",
+      "createdAt": "2026-01-21T07:30:24.896Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/shared.ts": {
+      "path": "src/core/validate/shared.ts",
+      "createdAt": "2026-01-21T07:31:22.534Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/structure.ts": {
+      "path": "src/core/validate/steps/structure.ts",
+      "createdAt": "2026-01-21T07:31:22.540Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/identity.ts": {
+      "path": "src/core/validate/steps/identity.ts",
+      "createdAt": "2026-01-21T07:31:22.542Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/option-maps.ts": {
+      "path": "src/core/validate/steps/option-maps.ts",
+      "createdAt": "2026-01-21T07:31:22.543Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/visibility.ts": {
+      "path": "src/core/validate/steps/visibility.ts",
+      "createdAt": "2026-01-21T07:31:22.544Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/service-vs-input.ts": {
+      "path": "src/core/validate/steps/service-vs-input.ts",
+      "createdAt": "2026-01-21T07:31:22.545Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/utility.ts": {
+      "path": "src/core/validate/steps/utility.ts",
+      "createdAt": "2026-01-21T07:31:22.547Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/rates.ts": {
+      "path": "src/core/validate/steps/rates.ts",
+      "createdAt": "2026-01-21T07:31:22.550Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/constraints.ts": {
+      "path": "src/core/validate/steps/constraints.ts",
+      "createdAt": "2026-01-21T07:31:22.552Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/custom.ts": {
+      "path": "src/core/validate/steps/custom.ts",
+      "createdAt": "2026-01-21T07:31:22.558Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/global-utility-guard.ts": {
+      "path": "src/core/validate/steps/global-utility-guard.ts",
+      "createdAt": "2026-01-21T07:31:22.559Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/unbound.ts": {
+      "path": "src/core/validate/steps/unbound.ts",
+      "createdAt": "2026-01-21T07:31:22.560Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/steps/fallbacks.ts": {
+      "path": "src/core/validate/steps/fallbacks.ts",
+      "createdAt": "2026-01-21T07:31:22.564Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/policies/where.ts": {
+      "path": "src/core/validate/policies/where.ts",
+      "createdAt": "2026-01-21T07:31:22.570Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/policies/collect-service-items.ts": {
+      "path": "src/core/validate/policies/collect-service-items.ts",
+      "createdAt": "2026-01-21T07:31:22.571Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/policies/ops.ts": {
+      "path": "src/core/validate/policies/ops.ts",
+      "createdAt": "2026-01-21T07:31:22.572Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/policies/apply-policies.ts": {
+      "path": "src/core/validate/policies/apply-policies.ts",
+      "createdAt": "2026-01-21T07:31:22.574Z",
+      "sizeAtCreate": 0,
+      "groupName": "default",
+      "groupRoot": "."
+    },
+    "src/core/validate/index.ts": {
+      "path": "src/core/validate/index.ts",
+      "createdAt": "2026-01-21T07:41:54.843Z",
       "sizeAtCreate": 0,
       "groupName": "default",
       "groupRoot": "."

@@ -1,8 +1,8 @@
 // src/canvas/__tests__/editor.utility-guard.spec.ts
 import {describe, it, expect, vi} from 'vitest';
-import {createBuilder} from "../../../core";
+import {createBuilder} from "@/core";
 import {CanvasAPI} from "../api";
-import {ServiceProps} from "../../../schema";
+import {ServiceProps} from "@/schema";
 
 function baseProps(): ServiceProps {
     return {

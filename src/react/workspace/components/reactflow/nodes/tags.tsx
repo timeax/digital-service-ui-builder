@@ -1,6 +1,6 @@
-import Node from "@/components/reactflow/nodes/node";
+import Node from "./node";
 import React from "react";
-import type { FlowNode } from "../../../../../schema/graph";
+import type { FlowNode } from "@/schema/graph";
 
 const Tag: React.FC<FlowNode> = ({
     id,
